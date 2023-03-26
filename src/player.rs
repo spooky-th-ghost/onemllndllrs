@@ -10,7 +10,14 @@ impl Plugin for PlayerMovementPlugin {
     fn build(&self, app: &mut App) {
         app.configure_set(PlayerSet::Movement.in_set(OnUpdate(GameState::RunAndGun)))
             .add_startup_system(spawn_player)
-            .add_systems((get_player_direction, rotate_player_to_direction).chain());
+            .add_systems(
+                (
+                    get_player_direction,
+                    rotate_player_to_direction,
+                    move_player,
+                )
+                    .chain(),
+            );
     }
 }
 
@@ -81,15 +88,17 @@ fn get_player_direction(
 
         movement.direction =
             ((axis_pair.y() * forward) + (axis_pair.x() * right)).normalize_or_zero();
+    } else {
+        movement.direction = Vec3::ZERO;
     }
 }
 
-pub fn rotate_player_to_direction(
+fn rotate_player_to_direction(
     time: Res<Time>,
-    mut query: Query<(&mut Transform, &Movement), With<Player>>,
+    mut player_query: Query<(&mut Transform, &Movement), With<Player>>,
     mut rotation_target: Local<Transform>,
 ) {
-    for (mut transform, movement) in &mut query {
+    for (mut transform, movement) in &mut player_query {
         rotation_target.translation = transform.translation;
         let flat_velo_direction =
             Vec3::new(movement.direction.x, 0.0, movement.direction.z).normalize_or_zero();
@@ -102,6 +111,14 @@ pub fn rotate_player_to_direction(
             transform.rotation = transform
                 .rotation
                 .slerp(rotation_target.rotation, time.delta_seconds() * turn_speed);
+        }
+    }
+}
+
+fn move_player(mut player_query: Query<(&mut Velocity, &Transform, &Movement), With<Player>>) {
+    for (mut velocity, transform, movement) in &mut player_query {
+        if movement.direction != Vec3::ZERO {
+            velocity.linvel = transform.forward().normalize_or_zero() * 2.0;
         }
     }
 }
