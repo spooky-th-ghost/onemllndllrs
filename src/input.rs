@@ -7,6 +7,7 @@ pub enum PlayerAction {
     Pan,
     PanGamepad,
     Jump,
+    Move,
 }
 
 #[derive(Bundle)]
@@ -23,7 +24,9 @@ impl InputListenerBundle {
             .insert_multiple([
                 (DualAxis::mouse_motion(), Pan),
                 (DualAxis::right_stick(), PanGamepad),
+                (DualAxis::left_stick(), Move),
             ])
+            .insert(VirtualDPad::wasd(), Move)
             .set_gamepad(Gamepad { id: 1 })
             .build();
 

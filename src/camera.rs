@@ -19,6 +19,12 @@ impl Plugin for PlayerCameraPlugin {
     }
 }
 
+pub enum CameraMode {
+    Explore,
+    Shoot,
+    Cutscene,
+}
+
 #[derive(Component)]
 pub struct PrimaryCamera {
     pub offset: Vec3,
