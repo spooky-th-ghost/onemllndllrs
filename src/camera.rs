@@ -46,7 +46,7 @@ impl PrimaryCamera {
 impl Default for PrimaryCamera {
     fn default() -> Self {
         PrimaryCamera {
-            offset: Vec3::new(-1.0, 0.5, -4.0),
+            offset: Vec3::new(-1.0, 0.5, -6.0),
             x_angle: 0.0,
             y_angle: 0.0,
             target: Vec3::ZERO,
