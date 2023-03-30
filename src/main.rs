@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
+use bevy_vfx_bag::BevyVfxBagPlugin;
 use leafwing_input_manager::prelude::InputManagerPlugin;
 
 pub mod camera;
@@ -28,6 +29,7 @@ fn main() {
     App::new()
         .add_state::<GameState>()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .add_plugin(BevyVfxBagPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(InputManagerPlugin::<PlayerAction>::default())

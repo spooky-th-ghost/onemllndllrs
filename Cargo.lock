@@ -274,6 +274,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy-vfx-bag"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a0675fb122d542f0146abbe148b8f1054400c0a5f8196bc79f5644444a543fd"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_a11y"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2483,6 +2492,7 @@ name = "onemllndllrs"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy-vfx-bag",
  "bevy_rapier3d",
  "leafwing-input-manager",
 ]
