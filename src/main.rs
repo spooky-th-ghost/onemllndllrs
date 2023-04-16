@@ -6,8 +6,8 @@ use leafwing_input_manager::prelude::InputManagerPlugin;
 pub mod camera;
 use camera::*;
 
-pub mod player;
-use player::*;
+pub mod movement;
+use movement::*;
 
 pub mod input;
 use input::*;
@@ -42,7 +42,7 @@ fn main() {
         })
         .add_startup_systems((setup, lock_mouse).chain())
         .add_plugin(PlayerCameraPlugin)
-        .add_plugin(PlayerMovementPlugin)
+        .add_plugin(MovementPlugin)
         .add_plugin(MenusPlugin)
         .run();
 }

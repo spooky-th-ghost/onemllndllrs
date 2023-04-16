@@ -4,17 +4,18 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{GameState, InputListenerBundle, PlayerAction, PlayerSet, PrimaryCamera};
 
-pub struct PlayerMovementPlugin;
+pub struct MovementPlugin;
 
-impl Plugin for PlayerMovementPlugin {
+impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.configure_set(PlayerSet::Movement.in_set(OnUpdate(GameState::RunAndGun)))
             .add_startup_system(spawn_player)
             .add_systems(
                 (
                     get_player_direction,
-                    rotate_player_to_direction,
-                    move_player,
+                    rotate_character_to_direction,
+                    update_character_momentum,
+                    apply_momentum,
                 )
                     .chain(),
             );
@@ -22,11 +23,73 @@ impl Plugin for PlayerMovementPlugin {
 }
 
 #[derive(Component)]
+pub struct Character;
+
+#[derive(Component)]
 pub struct Player;
 
+#[derive(Component)]
+pub struct Strafe;
+
+#[derive(Component)]
+pub struct Movespeed(f32);
+
+impl Movespeed {
+    pub fn get(&self) -> f32 {
+        self.0
+    }
+
+    pub fn set(&mut self, value: f32) {
+        self.0 = value;
+    }
+}
+
+impl Default for Movespeed {
+    fn default() -> Self {
+        Movespeed(5.0)
+    }
+}
+
 #[derive(Component, Default)]
-pub struct Movement {
-    pub direction: Vec3,
+pub struct Direction(Vec3);
+
+impl Direction {
+    pub fn get(&self) -> Vec3 {
+        self.0
+    }
+
+    pub fn has_some(&self) -> bool {
+        self.0 != Vec3::ZERO
+    }
+
+    pub fn set(&mut self, value: Vec3) {
+        self.0 = value.normalize_or_zero();
+    }
+
+    pub fn reset(&mut self) {
+        self.0 = Vec3::ZERO;
+    }
+}
+
+#[derive(Component, Default)]
+pub struct Momentum(Vec3);
+
+impl Momentum {
+    pub fn get(&self) -> Vec3 {
+        self.0
+    }
+
+    pub fn has_some(&self) -> bool {
+        self.0 != Vec3::ZERO
+    }
+
+    pub fn set(&mut self, value: Vec3) {
+        self.0 = value;
+    }
+
+    pub fn reset(&mut self) {
+        self.0 = Vec3::ZERO;
+    }
 }
 
 fn spawn_player(
@@ -55,8 +118,11 @@ fn spawn_player(
             combine_rule: CoefficientCombineRule::Min,
         })
         .insert(GravityScale(1.0))
-        .insert(Movement::default())
+        .insert(Direction::default())
+        .insert(Momentum::default())
+        .insert(Movespeed::default())
         .insert(Player)
+        .insert(Character)
         .with_children(|parent| {
             parent.spawn(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Box::new(0.5, 0.5, 0.5))),
@@ -68,11 +134,11 @@ fn spawn_player(
 }
 
 fn get_player_direction(
-    mut player_query: Query<(&mut Movement, &ActionState<PlayerAction>), With<Player>>,
+    mut player_query: Query<(&mut Direction, &ActionState<PlayerAction>), With<Player>>,
     camera_query: Query<&Transform, With<PrimaryCamera>>,
 ) {
     let camera_transform = camera_query.single();
-    let (mut movement, action) = player_query.single_mut();
+    let (mut direction, action) = player_query.single_mut();
 
     let forward = Vec3::new(
         camera_transform.forward().x,
@@ -86,22 +152,21 @@ fn get_player_direction(
     if action.pressed(PlayerAction::Move) {
         let axis_pair = action.clamped_axis_pair(PlayerAction::Move).unwrap();
 
-        movement.direction =
-            ((axis_pair.y() * forward) + (axis_pair.x() * right)).normalize_or_zero();
+        direction.set((axis_pair.y() * forward) + (axis_pair.x() * right));
     } else {
-        movement.direction = Vec3::ZERO;
+        direction.reset();
     }
 }
 
-fn rotate_player_to_direction(
+fn rotate_character_to_direction(
     time: Res<Time>,
-    mut player_query: Query<(&mut Transform, &Movement), With<Player>>,
+    mut character_query: Query<(&mut Transform, &Direction), (With<Character>, Without<Strafe>)>,
     mut rotation_target: Local<Transform>,
 ) {
-    for (mut transform, movement) in &mut player_query {
+    for (mut transform, direction) in &mut character_query {
         rotation_target.translation = transform.translation;
-        let flat_velo_direction =
-            Vec3::new(movement.direction.x, 0.0, movement.direction.z).normalize_or_zero();
+        let dir = direction.get();
+        let flat_velo_direction = Vec3::new(dir.x, 0.0, dir.z).normalize_or_zero();
         if flat_velo_direction != Vec3::ZERO {
             let target_position = rotation_target.translation + flat_velo_direction;
 
@@ -115,10 +180,31 @@ fn rotate_player_to_direction(
     }
 }
 
-fn move_player(mut player_query: Query<(&mut Velocity, &Transform, &Movement), With<Player>>) {
-    for (mut velocity, transform, movement) in &mut player_query {
-        if movement.direction != Vec3::ZERO {
-            velocity.linvel = transform.forward().normalize_or_zero() * 2.0;
+fn update_character_momentum(
+    mut character_query: Query<(&mut Momentum, &Movespeed, &Direction), With<Character>>,
+) {
+    for (mut momentum, movespeed, direction) in &mut character_query {
+        if direction.has_some() {
+            momentum.set(direction.get() * movespeed.get());
+        } else {
+            momentum.reset();
+        }
+    }
+}
+
+fn apply_momentum(mut query: Query<(&mut Velocity, &Momentum)>) {
+    for (mut velocity, momentum) in &mut query {
+        let mut velocity_to_apply = Vec3::ZERO;
+        let mut should_change_velocity: bool = false;
+
+        if momentum.has_some() {
+            should_change_velocity = true;
+            velocity_to_apply = momentum.get();
+        }
+
+        if should_change_velocity {
+            velocity.linvel.x = velocity_to_apply.x;
+            velocity.linvel.z = velocity_to_apply.z;
         }
     }
 }
