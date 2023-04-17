@@ -15,6 +15,9 @@ use input::*;
 pub mod menus;
 use menus::*;
 
+pub mod dialogue;
+use dialogue::*;
+
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum GameState {
     MainMenu,
@@ -43,7 +46,8 @@ fn main() {
         .add_startup_systems((setup, lock_mouse).chain())
         .add_plugin(PlayerCameraPlugin)
         .add_plugin(MovementPlugin)
-        .add_plugin(MenusPlugin)
+        .add_plugin(DialoguePlugin)
+        //.add_plugin(MenusPlugin)
         .run();
 }
 
