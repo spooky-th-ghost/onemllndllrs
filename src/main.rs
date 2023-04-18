@@ -15,6 +15,9 @@ use input::*;
 pub mod menus;
 use menus::*;
 
+pub mod settings;
+use settings::*;
+
 pub mod dialogue;
 use dialogue::*;
 
@@ -43,10 +46,11 @@ fn main() {
             gravity: Vec3::Y * -30.0,
             ..default()
         })
-        .add_startup_systems((setup, lock_mouse).chain())
+        .add_startup_system(setup)
         .add_plugin(PlayerCameraPlugin)
         .add_plugin(MovementPlugin)
         .add_plugin(DialoguePlugin)
+        .add_plugin(UserSettingsPlugin)
         //.add_plugin(MenusPlugin)
         .run();
 }
@@ -66,12 +70,4 @@ fn setup(
         })
         .insert(Collider::cuboid(5.0, 0.25, 5.0))
         .insert(RigidBody::Fixed);
-}
-
-fn lock_mouse(mut query: Query<&mut Window, With<bevy::window::PrimaryWindow>>) {
-    let Ok(mut primary) = query.get_single_mut() else {
-        return;
-    };
-
-    primary.cursor.grab_mode = bevy::window::CursorGrabMode::Locked;
 }

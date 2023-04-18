@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
+use crate::DisplaySettings;
+
 pub struct DialoguePlugin;
 
 impl Plugin for DialoguePlugin {
@@ -43,7 +45,12 @@ impl std::fmt::Display for Dialogue {
     }
 }
 
-pub fn setup_text_box(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_text_box(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    display_settings: Res<DisplaySettings>,
+) {
+    let resolution = display_settings.resolution;
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -71,7 +78,7 @@ pub fn setup_text_box(mut commands: Commands, asset_server: Res<AssetServer>) {
                     )
                     .with_style(Style {
                         margin: UiRect::all(Val::Percent(2.5)),
-                        max_size: Size::width(Val::Px(800.0)),
+                        max_size: Size::width(Val::Px(resolution.0 * 0.88)),
                         ..default()
                     }),
                 )
