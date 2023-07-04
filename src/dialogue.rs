@@ -86,7 +86,7 @@ pub fn setup_text_box(
         });
 
     commands.insert_resource(Dialogue {
-        current_dialogue: "This is some test dialogue, hope it looks good, who knows, making it longer to see if it wraps correctly, so hopefully this isn't running off screen".to_string(),
+        current_dialogue: "This is some test dialogue, hope it looks good, who knows, making it longer to see if it wraps correctly, so hopefully this isn't running off screen, that's good right?".to_string(),
         character_index: 0,
         character_timer: Timer::from_seconds(0.025, TimerMode::Once),
     });

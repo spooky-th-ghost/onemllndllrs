@@ -17,8 +17,13 @@ impl Plugin for MovementPlugin {
                     update_character_momentum,
                     apply_momentum,
                 )
-                    .chain(),
-            );
+                    .chain()
+                    .in_set(PlayerSet::Movement),
+            )
+            // Disable Physics calc when we leave the gameplay state
+            .add_system(disable_physics_simulation.in_schedule(OnExit(GameState::RunAndGun)))
+            // Re-enable Physics calc when we enter the gameplay state
+            .add_system(re_enable_physics_simulation.in_schedule(OnEnter(GameState::RunAndGun)));
     }
 }
 
@@ -207,4 +212,12 @@ fn apply_momentum(mut query: Query<(&mut Velocity, &Momentum)>) {
             velocity.linvel.z = velocity_to_apply.z;
         }
     }
+}
+
+fn disable_physics_simulation(mut rapier_config: ResMut<RapierConfiguration>) {
+    rapier_config.physics_pipeline_active = false;
+}
+
+fn re_enable_physics_simulation(mut rapier_config: ResMut<RapierConfiguration>) {
+    rapier_config.physics_pipeline_active = false;
 }

@@ -15,6 +15,9 @@ use input::*;
 pub mod menus;
 use menus::*;
 
+pub mod object;
+use object::*;
+
 pub mod settings;
 use settings::*;
 

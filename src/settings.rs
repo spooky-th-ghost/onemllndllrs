@@ -19,7 +19,7 @@ impl Default for DisplaySettings {
     fn default() -> Self {
         DisplaySettings {
             resolution: (1600.0, 900.0),
-            cursor_mode: bevy::window::CursorGrabMode::Locked,
+            cursor_mode: bevy::window::CursorGrabMode::None,
         }
     }
 }
