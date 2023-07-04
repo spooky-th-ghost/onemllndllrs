@@ -9,6 +9,9 @@ use camera::*;
 pub mod movement;
 use movement::*;
 
+pub mod collision;
+use collision::*;
+
 pub mod input;
 use input::*;
 
