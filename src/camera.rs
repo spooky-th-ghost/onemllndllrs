@@ -26,12 +26,19 @@ pub enum CameraMode {
     Cutscene,
 }
 
+pub enum CameraPerspective {
+    FirstPerson,
+    ThirdPerson,
+}
+
 #[derive(Component)]
 pub struct PrimaryCamera {
     pub offset: Vec3,
     pub x_angle: f32,
     pub y_angle: f32,
     pub target: Vec3,
+    pub mode: CameraMode,
+    pub perspective: CameraPerspective,
 }
 
 impl PrimaryCamera {
@@ -51,6 +58,8 @@ impl Default for PrimaryCamera {
             x_angle: 0.0,
             y_angle: 0.0,
             target: Vec3::ZERO,
+            mode: CameraMode::Shoot,
+            perspective: CameraPerspective::FirstPerson,
         }
     }
 }
