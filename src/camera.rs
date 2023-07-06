@@ -12,6 +12,7 @@ impl Plugin for PlayerCameraPlugin {
             .add_systems(
                 (
                     read_rotation_inputs_primary,
+                    switch_camera_perspective,
                     target_player,
                     position_and_rotate_camera,
                 )
@@ -43,7 +44,17 @@ pub struct PrimaryCamera {
 
 impl PrimaryCamera {
     pub fn adjust_x_angle(&mut self, increase: f32) {
-        self.x_angle = (self.x_angle + increase).clamp(-20.0, 20.0);
+        let max_x = match self.perspective {
+            CameraPerspective::FirstPerson => 87.0,
+            CameraPerspective::ThirdPerson => 20.0,
+        };
+
+        let min_x = match self.perspective {
+            CameraPerspective::FirstPerson => -87.0,
+            CameraPerspective::ThirdPerson => -2.0,
+        };
+
+        self.x_angle = (self.x_angle + increase).clamp(min_x, max_x);
     }
 
     pub fn adjust_y_angle(&mut self, increase: f32) {
@@ -61,6 +72,21 @@ impl Default for PrimaryCamera {
             mode: CameraMode::Shoot,
             perspective: CameraPerspective::FirstPerson,
         }
+    }
+}
+
+fn switch_camera_perspective(
+    mut camera_query: Query<&mut PrimaryCamera>,
+    player_query: Query<&ActionState<PlayerAction>>,
+) {
+    let mut camera = camera_query.single_mut();
+    let action = player_query.single();
+
+    if action.just_pressed(PlayerAction::SwitchPerspective) {
+        camera.perspective = match camera.perspective {
+            CameraPerspective::FirstPerson => CameraPerspective::ThirdPerson,
+            CameraPerspective::ThirdPerson => CameraPerspective::FirstPerson,
+        };
     }
 }
 
@@ -139,10 +165,17 @@ fn position_and_rotate_camera(
     let forward = starting_transform.forward().normalize();
     let right = starting_transform.right().normalize();
 
-    let desired_position = starting_transform.translation
-        + (forward * camera.offset.z)
-        + (right * camera.offset.x)
-        + (Vec3::Y * camera.offset.y);
+    let desired_position = match camera.perspective {
+        CameraPerspective::ThirdPerson => {
+            starting_transform.translation
+                + (forward * camera.offset.z)
+                + (right * camera.offset.x)
+                + (Vec3::Y * camera.offset.y)
+        }
+        CameraPerspective::FirstPerson => {
+            starting_transform.translation + (Vec3::Y * camera.offset.y)
+        }
+    };
 
     let mut desired_rotatation = Transform::default();
 

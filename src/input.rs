@@ -8,6 +8,7 @@ pub enum PlayerAction {
     PanGamepad,
     Jump,
     Move,
+    SwitchPerspective,
 }
 
 #[derive(Bundle)]
@@ -20,15 +21,16 @@ impl InputListenerBundle {
     pub fn input_map() -> InputListenerBundle {
         use PlayerAction::*;
 
-        let input_map = input_map::InputMap::new([(KeyCode::Space, Jump)])
-            .insert_multiple([
-                (DualAxis::mouse_motion(), Pan),
-                (DualAxis::right_stick(), PanGamepad),
-                (DualAxis::left_stick(), Move),
-            ])
-            .insert(VirtualDPad::wasd(), Move)
-            .set_gamepad(Gamepad { id: 1 })
-            .build();
+        let input_map =
+            input_map::InputMap::new([(KeyCode::Space, Jump), (KeyCode::Q, SwitchPerspective)])
+                .insert_multiple([
+                    (DualAxis::mouse_motion(), Pan),
+                    (DualAxis::right_stick(), PanGamepad),
+                    (DualAxis::left_stick(), Move),
+                ])
+                .insert(VirtualDPad::wasd(), Move)
+                .set_gamepad(Gamepad { id: 1 })
+                .build();
 
         InputListenerBundle {
             input_manager: InputManagerBundle {
