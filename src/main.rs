@@ -27,6 +27,10 @@ use settings::*;
 pub mod dialogue;
 use dialogue::*;
 
+pub mod weapon;
+
+pub mod inventory;
+
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum GameState {
     MainMenu,

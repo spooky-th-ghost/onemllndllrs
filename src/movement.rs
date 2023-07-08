@@ -219,5 +219,5 @@ fn disable_physics_simulation(mut rapier_config: ResMut<RapierConfiguration>) {
 }
 
 fn re_enable_physics_simulation(mut rapier_config: ResMut<RapierConfiguration>) {
-    rapier_config.physics_pipeline_active = false;
+    rapier_config.physics_pipeline_active = true;
 }
