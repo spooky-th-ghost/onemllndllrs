@@ -1,3 +1,4 @@
+use crate::money::{Money, Wallet};
 use bevy::{prelude::*, utils::hashbrown::hash_set::Difference};
 use std::time::Duration;
 
@@ -51,11 +52,11 @@ impl Gun {
         }
     }
 
-    pub fn reload(&mut self) {
+    pub fn reload(&mut self, mut wallet: ResMut<Wallet>) {
         let percentage_purchased = self.clip.reload();
 
         if percentage_purchased > 0.0 {
-            //TODO: Deduct funds
+            wallet.debit(Money::from(percentage_purchased));
             self.reload_timer = Timer::from_seconds(self.clip.get_reload_time(), TimerMode::Once);
         }
     }
