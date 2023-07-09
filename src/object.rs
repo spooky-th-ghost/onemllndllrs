@@ -19,15 +19,3 @@ pub enum InteractionType {
     Item(ItemId),
     Activate,
 }
-
-#[derive(Resource)]
-pub struct Debts {
-    medical: u32,
-    rent: u32,
-    utilities: u32,
-}
-
-#[derive(Resource)]
-pub struct Wallet {
-    funds: f32,
-}

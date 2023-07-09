@@ -31,6 +31,8 @@ pub mod weapon;
 
 pub mod inventory;
 
+pub mod money;
+
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum GameState {
     MainMenu,

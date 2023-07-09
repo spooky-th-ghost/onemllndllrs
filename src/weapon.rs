@@ -22,11 +22,15 @@ impl Gun {
     pub fn fire(&mut self) -> Option<Shot> {
         if self.trigger.can_fire() && !self.reloading {
             if self.clip.spend_ammo() {
-                //TODO: Create Shot
                 use FireType::*;
                 let shot = match self.receiver.fire_type {
                     Hitscan => Shot::Hitscan {
                         base_damage: self.receiver.base_damage,
+                    },
+                    HitscanSpread(amount) => Shot::MultiHitscan {
+                        base_damage: self.receiver.base_damage,
+                        count: amount,
+                        spread: 20.0,
                     },
                     Projectile => Shot::SingleProjectile {
                         base_damage: self.receiver.base_damage,
@@ -42,6 +46,8 @@ impl Gun {
                 //TODO: Play the click sound
                 None
             }
+        } else {
+            None
         }
     }
 
@@ -58,6 +64,11 @@ impl Gun {
 pub enum Shot {
     Hitscan {
         base_damage: u16,
+    },
+    MultiHitscan {
+        base_damage: u16,
+        count: u8,
+        spread: f32,
     },
     SingleProjectile {
         base_damage: u16,
@@ -153,7 +164,7 @@ pub struct Trigger {
 }
 
 impl Trigger {
-    fn can_fire() -> bool {
+    fn can_fire(&self) -> bool {
         self.pullable
     }
 
@@ -168,7 +179,7 @@ impl Trigger {
     }
 
     fn fire(&mut self) {
-        self.can_fire = false;
+        self.pullable = false;
     }
 }
 
@@ -179,6 +190,7 @@ pub enum TriggerMode {
 
 pub enum FireType {
     Hitscan,
+    HitscanSpread(u8),
     Projectile,
     ProjectileSpread(u8),
 }
