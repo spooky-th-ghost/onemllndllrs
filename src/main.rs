@@ -15,9 +15,6 @@ use collision::*;
 pub mod input;
 use input::*;
 
-pub mod menus;
-use menus::*;
-
 pub mod object;
 use object::*;
 
@@ -66,7 +63,6 @@ fn main() {
         .add_plugin(MovementPlugin)
         .add_plugin(DialoguePlugin)
         .add_plugin(UserSettingsPlugin)
-        //.add_plugin(MenusPlugin)
         .run();
 }
 

@@ -663,14 +663,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a96c24da064370917b92c2a84527e6a73b620c50ac5ef8b1af8c04ccf5256a7c"
 
 [[package]]
-name = "bevy_quickmenu"
-version = "0.1.6"
-source = "git+https://github.com/terhechte/bevy_quickmenu#6d7c3ab06853fadf53e49ffed5ee1c33e973f358"
-dependencies = [
- "bevy",
-]
-
-[[package]]
 name = "bevy_rapier3d"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2501,7 +2493,6 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy-vfx-bag",
- "bevy_quickmenu",
  "bevy_rapier3d",
  "leafwing-input-manager",
 ]
