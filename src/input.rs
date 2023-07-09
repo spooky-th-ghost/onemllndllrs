@@ -9,6 +9,7 @@ pub enum PlayerAction {
     Jump,
     Move,
     SwitchPerspective,
+    Shoot,
 }
 
 #[derive(Bundle)]
@@ -23,6 +24,7 @@ impl InputListenerBundle {
 
         let input_map =
             input_map::InputMap::new([(KeyCode::Space, Jump), (KeyCode::Q, SwitchPerspective)])
+                .insert(MouseButton::Left, Shoot)
                 .insert_multiple([
                     (DualAxis::mouse_motion(), Pan),
                     (DualAxis::right_stick(), PanGamepad),

@@ -71,6 +71,10 @@ impl Gun {
             self.reload_timer = Timer::from_seconds(self.clip.get_reload_time(), TimerMode::Once);
         }
     }
+
+    pub fn get_trigger_mode(&self) -> TriggerMode {
+        self.trigger.get_trigger_mode()
+    }
 }
 
 pub enum Shot {
@@ -209,11 +213,16 @@ impl Trigger {
         }
     }
 
+    fn get_trigger_mode(&self) -> TriggerMode {
+        self.trigger_mode
+    }
+
     fn fire(&mut self) {
         self.pullable = false;
     }
 }
 
+#[derive(Clone, Copy)]
 pub enum TriggerMode {
     Auto,
     SemiAuto,

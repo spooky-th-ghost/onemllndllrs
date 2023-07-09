@@ -33,6 +33,8 @@ pub mod inventory;
 
 pub mod money;
 
+pub mod shooting;
+
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum GameState {
     MainMenu,
@@ -44,6 +46,7 @@ pub enum GameState {
 pub enum PlayerSet {
     Camera,
     Movement,
+    Combat,
 }
 
 fn main() {

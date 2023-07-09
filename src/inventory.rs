@@ -1,5 +1,9 @@
-use crate::weapon::Gun;
+use crate::{
+    money::Wallet,
+    weapon::{Gun, Shot, TriggerMode},
+};
 use bevy::{prelude::*, utils::HashMap};
+use std::time::Duration;
 
 #[derive(Resource)]
 pub struct Inventory {
@@ -9,6 +13,24 @@ pub struct Inventory {
 #[derive(Resource)]
 pub struct Belt {
     pub gun: Gun,
+}
+
+impl Belt {
+    pub fn get_trigger_mode(&self) -> TriggerMode {
+        self.gun.get_trigger_mode()
+    }
+
+    pub fn tick(&mut self, delta: Duration) {
+        self.gun.tick(delta);
+    }
+
+    pub fn fire(&mut self) -> Option<Shot> {
+        self.gun.fire()
+    }
+
+    pub fn reload(&mut self, wallet: ResMut<Wallet>) {
+        self.gun.reload(wallet);
+    }
 }
 
 pub struct Item {
