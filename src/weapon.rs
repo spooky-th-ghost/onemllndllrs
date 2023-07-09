@@ -1,5 +1,5 @@
 use crate::money::{Money, Wallet};
-use bevy::{prelude::*, utils::hashbrown::hash_set::Difference};
+use bevy::prelude::*;
 use std::time::Duration;
 
 pub struct Gun {
@@ -15,6 +15,7 @@ impl Gun {
     pub fn tick(&mut self, delta: Duration) {
         self.trigger.tick(delta);
         self.reload_timer.tick(delta);
+        self.muzzle.reduce_spread();
         if self.reload_timer.finished() {
             self.reloading = false;
         }
@@ -27,21 +28,31 @@ impl Gun {
                 let shot = match self.receiver.fire_type {
                     Hitscan => Shot::Hitscan {
                         base_damage: self.receiver.base_damage,
+                        range: self.muzzle.get_range(),
+                        force_applied: self.receiver.get_force(),
                     },
                     HitscanSpread(amount) => Shot::MultiHitscan {
                         base_damage: self.receiver.base_damage,
+                        range: self.muzzle.get_range(),
+                        force_applied: self.receiver.get_force(),
                         count: amount,
-                        spread: 20.0,
+                        spread: self.muzzle.get_spread(),
                     },
                     Projectile => Shot::SingleProjectile {
                         base_damage: self.receiver.base_damage,
+                        range: self.muzzle.get_range(),
+                        force_applied: self.receiver.get_force(),
                     },
                     ProjectileSpread(amount) => Shot::MultiProjectile {
                         base_damage: self.receiver.base_damage,
+                        range: self.muzzle.get_range(),
+                        force_applied: self.receiver.get_force(),
                         count: amount,
-                        spread: 20.0,
+                        spread: self.muzzle.get_spread(),
                     },
                 };
+                self.trigger.fire();
+                self.muzzle.increase_spread();
                 Some(shot)
             } else {
                 //TODO: Play the click sound
@@ -65,17 +76,25 @@ impl Gun {
 pub enum Shot {
     Hitscan {
         base_damage: u16,
+        range: f32,
+        force_applied: f32,
     },
     MultiHitscan {
         base_damage: u16,
+        range: f32,
+        force_applied: f32,
         count: u8,
         spread: f32,
     },
     SingleProjectile {
         base_damage: u16,
+        range: f32,
+        force_applied: f32,
     },
     MultiProjectile {
         base_damage: u16,
+        range: f32,
+        force_applied: f32,
         count: u8,
         spread: f32,
     },
@@ -87,6 +106,12 @@ pub struct Receiver {
     force_transfer: f32,
 }
 
+impl Receiver {
+    fn get_force(&self) -> f32 {
+        self.force_transfer
+    }
+}
+
 pub struct Clip {
     max: u8,
     current: u8,
@@ -94,12 +119,11 @@ pub struct Clip {
 }
 
 impl Clip {
-    fn get_max(&self) -> u8 {
-        self.max
-    }
-
-    fn get_current(&self) -> u8 {
-        self.current
+    fn get_clip_stats(&self) -> ClipStats {
+        ClipStats {
+            max: self.max,
+            current: self.current,
+        }
     }
 
     fn get_reload_time(&self) -> f32 {
@@ -124,6 +148,12 @@ impl Clip {
             1.0 - (difference as f32 / self.max as f32)
         }
     }
+}
+
+#[derive(Clone, Copy)]
+pub struct ClipStats {
+    pub max: u8,
+    pub current: u8,
 }
 
 pub struct Muzzle {
