@@ -127,15 +127,15 @@ fn spawn_player(
         .insert(Momentum::default())
         .insert(Movespeed::default())
         .insert(Player)
-        .insert(Character)
-        .with_children(|parent| {
-            parent.spawn(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Box::new(0.5, 0.5, 0.5))),
-                material: materials.add(Color::WHITE.into()),
-                transform: Transform::from_xyz(0.0, 0.5, -0.5),
-                ..default()
-            });
-        });
+        .insert(Character);
+    // .with_children(|parent| {
+    //     parent.spawn(PbrBundle {
+    //         mesh: meshes.add(Mesh::from(shape::Box::new(0.5, 0.5, 0.5))),
+    //         material: materials.add(Color::WHITE.into()),
+    //         transform: Transform::from_xyz(0.0, 0.5, -0.5),
+    //         ..default()
+    //     });
+    // });
 }
 
 fn get_player_direction(

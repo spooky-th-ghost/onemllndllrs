@@ -26,7 +26,7 @@ impl Gun {
             if self.clip.spend_ammo() {
                 use FireType::*;
                 let shot = match self.receiver.fire_type {
-                    Hitscan => Shot::Hitscan {
+                    Hitscan => Shot::SingleHitscan {
                         base_damage: self.receiver.base_damage,
                         range: self.muzzle.get_range(),
                         force_applied: self.receiver.get_force(),
@@ -78,7 +78,7 @@ impl Gun {
 }
 
 pub enum Shot {
-    Hitscan {
+    SingleHitscan {
         base_damage: u16,
         range: f32,
         force_applied: f32,
