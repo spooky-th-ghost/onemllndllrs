@@ -11,7 +11,10 @@ pub struct ShootingPlugin;
 
 impl Plugin for ShootingPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_set(PlayerSet::Combat.in_set(OnUpdate(GameState::RunAndGun)));
+        app.configure_set(
+            Update,
+            PlayerSet::Combat.run_if(in_state(GameState::RunAndGun)),
+        );
     }
 }
 

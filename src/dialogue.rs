@@ -54,12 +54,10 @@ pub fn setup_text_box(
     commands
         .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(90.0), Val::Percent(30.0)),
-                position: UiRect {
-                    left: Val::Percent(5.0),
-                    bottom: Val::Percent(-70.0),
-                    ..default()
-                },
+                width: Val::Percent(90.0),
+                height: Val::Percent(30.0),
+                left: Val::Percent(5.0),
+                bottom: Val::Percent(-70.0),
                 ..default()
             },
             background_color: Color::rgba(0.0, 0.0, 0.0, 0.4).into(),
@@ -78,7 +76,7 @@ pub fn setup_text_box(
                     )
                     .with_style(Style {
                         margin: UiRect::all(Val::Percent(2.5)),
-                        max_size: Size::width(Val::Px(resolution.0 * 0.88)),
+                        max_width: Val::Px(resolution.0 * 0.88),
                         ..default()
                     }),
                 )

@@ -8,22 +8,26 @@ pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_set(PlayerSet::Movement.in_set(OnUpdate(GameState::RunAndGun)))
-            .add_startup_system(spawn_player)
-            .add_systems(
-                (
-                    get_player_direction,
-                    rotate_character_to_direction,
-                    update_character_momentum,
-                    apply_momentum,
-                )
-                    .chain()
-                    .in_set(PlayerSet::Movement),
+        app.configure_set(
+            Update,
+            PlayerSet::Movement.run_if(in_state(GameState::RunAndGun)),
+        )
+        .add_systems(Startup, spawn_player)
+        .add_systems(
+            Update,
+            (
+                get_player_direction,
+                rotate_character_to_direction,
+                update_character_momentum,
+                apply_momentum,
             )
-            // Disable Physics calc when we leave the gameplay state
-            .add_system(disable_physics_simulation.in_schedule(OnExit(GameState::RunAndGun)))
-            // Re-enable Physics calc when we enter the gameplay state
-            .add_system(re_enable_physics_simulation.in_schedule(OnEnter(GameState::RunAndGun)));
+                .chain()
+                .in_set(PlayerSet::Movement),
+        )
+        // Disable Physics calc when we leave the gameplay state
+        .add_systems(OnExit(GameState::RunAndGun), disable_physics_simulation)
+        // Re-enable Physics calc when we enter the gameplay state
+        .add_systems(OnEnter(GameState::RunAndGun), re_enable_physics_simulation);
     }
 }
 

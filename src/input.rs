@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use leafwing_input_manager::{prelude::*, *};
 
-#[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Default)]
+#[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug, Default, Reflect)]
 pub enum PlayerAction {
     #[default]
     Pan,
@@ -14,7 +14,6 @@ pub enum PlayerAction {
 
 #[derive(Bundle)]
 pub struct InputListenerBundle {
-    #[bundle]
     input_manager: InputManagerBundle<PlayerAction>,
 }
 

@@ -1,23 +1,26 @@
 use crate::{GameState, Player, PlayerAction, PlayerSet};
 use bevy::prelude::*;
-use bevy_vfx_bag::post_processing::pixelate::Pixelate;
 use leafwing_input_manager::prelude::*;
 
 pub struct PlayerCameraPlugin;
 
 impl Plugin for PlayerCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_set(PlayerSet::Camera.in_set(OnUpdate(GameState::RunAndGun)))
-            .add_startup_system(spawn_camera)
-            .add_systems(
-                (
-                    read_rotation_inputs_primary,
-                    switch_camera_perspective,
-                    target_player,
-                    position_and_rotate_camera,
-                )
-                    .chain(),
-            );
+        app.configure_set(
+            Update,
+            PlayerSet::Camera.run_if(in_state(GameState::RunAndGun)),
+        )
+        .add_systems(Startup, spawn_camera)
+        .add_systems(
+            Update,
+            (
+                read_rotation_inputs_primary,
+                switch_camera_perspective,
+                target_player,
+                position_and_rotate_camera,
+            )
+                .chain(),
+        );
     }
 }
 
@@ -199,6 +202,5 @@ fn spawn_camera(mut commands: Commands) {
             transform: Transform::from_xyz(0.0, 5.0, -5.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(PrimaryCamera::default())
-        .insert(Pixelate { block_size: 2.0 });
+        .insert(PrimaryCamera::default());
 }
