@@ -1,5 +1,5 @@
 use crate::{GameState, Player, PlayerAction, PlayerSet};
-use bevy::prelude::*;
+use bevy::{core_pipeline::Skybox, prelude::*};
 use leafwing_input_manager::prelude::*;
 
 pub struct PlayerCameraPlugin;
@@ -196,11 +196,14 @@ fn position_and_rotate_camera(
     transform.rotation = slerp_rotation;
 }
 
-fn spawn_camera(mut commands: Commands) {
+fn spawn_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(Camera3dBundle {
             transform: Transform::from_xyz(0.0, 5.0, -5.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(PrimaryCamera::default());
+        .insert((
+            PrimaryCamera::default(),
+            Skybox(asset_server.load("skyboxes/nightsky.jpeg")),
+        ));
 }

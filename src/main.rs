@@ -46,6 +46,12 @@ pub enum PlayerSet {
     Combat,
 }
 
+#[derive(Resource, Default)]
+pub struct AssetCache {
+    pub check_texture: Handle<Image>,
+    pub check_material: Handle<StandardMaterial>,
+}
+
 fn main() {
     App::new()
         .add_state::<GameState>()
@@ -75,14 +81,17 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     assets: Res<AssetServer>,
 ) {
+    let check_texture = assets.load("check_texture.png");
+    let check_material = materials.add(StandardMaterial {
+        base_color_texture: Some(check_texture.clone()),
+        ..default()
+    });
+
     // Ground
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Box::new(10.0, 0.5, 10.0))),
-            material: materials.add(StandardMaterial {
-                base_color_texture: Some(assets.load("check_texture.png")),
-                ..default()
-            }),
+            material: check_material.clone(),
             transform: Transform::from_xyz(0.0, -0.5, 0.0),
             ..default()
         })
@@ -94,6 +103,10 @@ fn setup(
         scene: assets.load("blocks.glb#Scene0"),
         transform: Transform::from_xyz(0.0, 0.0, -5.0),
         ..Default::default()
+    });
+    commands.insert_resource(AssetCache {
+        check_texture,
+        check_material,
     });
 }
 
@@ -118,6 +131,7 @@ fn prep_colliders(
     mut commands: Commands,
     cube_query: Query<(&Handle<Mesh>, &Name, Entity), Without<ColliderPrepped>>,
     meshes: Res<Assets<Mesh>>,
+    asset_cache: Res<AssetCache>,
 ) {
     let cube_regex = regex::Regex::new(r"^Cube").unwrap();
     for (handle, name, entity) in &cube_query {
@@ -127,7 +141,13 @@ fn prep_colliders(
                     Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap();
                 commands
                     .entity(entity)
-                    .insert((collider, RigidBody::Fixed, ColliderPrepped));
+                    .remove::<Handle<StandardMaterial>>()
+                    .insert((
+                        collider,
+                        RigidBody::Fixed,
+                        ColliderPrepped,
+                        asset_cache.check_material.clone(),
+                    ));
             }
         }
     }
