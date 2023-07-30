@@ -31,6 +31,7 @@ pub mod inventory;
 pub mod money;
 
 pub mod shooting;
+use shooting::*;
 
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum GameState {
@@ -71,6 +72,7 @@ fn main() {
             MovementPlugin,
             DialoguePlugin,
             UserSettingsPlugin,
+            ShootingPlugin,
         ))
         .run();
 }
