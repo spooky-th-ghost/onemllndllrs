@@ -31,6 +31,7 @@ pub mod inventory;
 pub mod money;
 
 pub mod shooting;
+use shooting::*;
 
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum GameState {
@@ -65,6 +66,7 @@ fn main() {
             MovementPlugin,
             DialoguePlugin,
             UserSettingsPlugin,
+            ShootingPlugin,
         ))
         .run();
 }
@@ -95,6 +97,12 @@ fn setup(
         transform: Transform::from_xyz(0.0, 0.0, -5.0),
         ..Default::default()
     });
+
+    // // Scene
+    // commands.spawn(SceneBundle {
+    //     scene: assets.load("blocks_custom.glb#Scene0"),
+    //     ..default()
+    // });
 }
 
 #[derive(Component)]
