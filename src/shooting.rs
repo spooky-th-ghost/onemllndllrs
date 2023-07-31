@@ -11,12 +11,20 @@ pub struct ShootingPlugin;
 
 impl Plugin for ShootingPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_set(
-            Update,
-            PlayerSet::Combat.run_if(in_state(GameState::RunAndGun)),
-        )
-        .add_systems(Update, debug_shooting.in_set(PlayerSet::Combat));
+        app.add_event::<ShotEvent>()
+            .configure_set(
+                Update,
+                PlayerSet::Combat.run_if(in_state(GameState::RunAndGun)),
+            )
+            .add_systems(Update, debug_shooting.in_set(PlayerSet::Combat));
     }
+}
+
+#[derive(Event)]
+pub struct ShotEvent {
+    pub shot_entity: Entity,
+    pub shot_impulse: Vec3,
+    pub collision_point: Vec3,
 }
 
 pub fn handle_shooting(
@@ -89,6 +97,7 @@ pub fn debug_shooting(
         (&Transform, bevy::ecs::query::Has<ExternalImpulse>),
         (With<RigidBody>, Without<Player>),
     >,
+    mut shot_events: EventWriter<ShotEvent>,
     rapier_context: Res<RapierContext>,
 ) {
     let (player_entity, action) = player_query.single();
@@ -110,8 +119,15 @@ pub fn debug_shooting(
         {
             let (hit_transform, has_external) = cube_query.get(entity).unwrap();
             let center_of_mass = hit_transform.translation;
+
+            shot_events.send(ShotEvent {
+                shot_entity: entity,
+                shot_impulse: camera_transform.forward() * 10.0,
+                collision_point: intersection.point,
+            });
+
             let impulse = ExternalImpulse::at_point(
-                camera_transform.forward() * 100.0,
+                camera_transform.forward() * 10.0,
                 intersection.point,
                 center_of_mass,
             );

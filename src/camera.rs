@@ -18,6 +18,7 @@ impl Plugin for PlayerCameraPlugin {
                 switch_camera_perspective,
                 target_player,
                 position_and_rotate_camera,
+                move_first_person_gun,
             )
                 .chain(),
         );
@@ -196,14 +197,51 @@ fn position_and_rotate_camera(
     transform.rotation = slerp_rotation;
 }
 
-fn spawn_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
+#[derive(Component, Default)]
+struct FirstPersonGun(pub AimMode);
+
+#[derive(Default, PartialEq)]
+pub enum AimMode {
+    #[default]
+    Hip,
+    Sights,
+}
+
+fn move_first_person_gun(
+    camera_query: Query<&Transform, With<PrimaryCamera>>,
+    mut gun_query: Query<(&mut Transform, &FirstPersonGun), Without<PrimaryCamera>>,
+) {
+    let camera_transform = camera_query.single();
+    let (mut gun_transform, _) = gun_query.single_mut();
+
+    let offset = (0.35 * camera_transform.right())
+        + (-0.3 * camera_transform.up())
+        + (0.9 * camera_transform.forward());
+
+    let desired_translation = camera_transform.translation + offset;
+
+    gun_transform.translation = desired_translation;
+    gun_transform.rotation = camera_transform.rotation;
+}
+
+fn spawn_camera(mut commands: Commands, assets: Res<AssetServer>) {
     commands
         .spawn(Camera3dBundle {
             transform: Transform::from_xyz(0.0, 5.0, -5.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert((
-            PrimaryCamera::default(),
-            Skybox(asset_server.load("skyboxes/nightsky.jpeg")),
-        ));
+        .insert(PrimaryCamera::default());
+    // .with_children(|parent| {
+    //     parent.spawn(SceneBundle {
+    //         scene: assets.load("gun.glb#Scene0"),
+    //         ..default()
+    //     });
+    // });
+    commands
+        .spawn(SceneBundle {
+            scene: assets.load("gun.glb#Scene0"),
+            ..default()
+        })
+        .insert(FirstPersonGun::default())
+        .insert(Name::new("Gun"));
 }

@@ -99,6 +99,34 @@ fn setup(
         })
         .insert(Collider::cuboid(5.0, 0.25, 5.0))
         .insert(RigidBody::Fixed);
+    // Cube Stack
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
+            material: check_material.clone(),
+            transform: Transform::from_xyz(3.0, 2.0, 3.0),
+            ..default()
+        })
+        .insert(Collider::cuboid(0.5, 0.5, 0.5))
+        .insert(RigidBody::Dynamic);
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
+            material: check_material.clone(),
+            transform: Transform::from_xyz(3.0, 3.5, 3.0),
+            ..default()
+        })
+        .insert(Collider::cuboid(0.5, 0.5, 0.5))
+        .insert(RigidBody::Dynamic);
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
+            material: check_material.clone(),
+            transform: Transform::from_xyz(3.0, 5.0, 3.0),
+            ..default()
+        })
+        .insert(Collider::cuboid(0.5, 0.5, 0.5))
+        .insert(RigidBody::Dynamic);
 
     // Scene
     commands.spawn(SceneBundle {
