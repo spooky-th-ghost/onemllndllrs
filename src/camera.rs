@@ -208,15 +208,19 @@ pub enum AimMode {
 }
 
 fn move_first_person_gun(
+    time: Res<Time>,
     camera_query: Query<&Transform, With<PrimaryCamera>>,
     mut gun_query: Query<(&mut Transform, &FirstPersonGun), Without<PrimaryCamera>>,
 ) {
     let camera_transform = camera_query.single();
     let (mut gun_transform, _) = gun_query.single_mut();
+    let frequency = 2.5;
+    let phase = 0.0;
 
-    let offset = (0.35 * camera_transform.right())
-        + (-0.3 * camera_transform.up())
-        + (0.9 * camera_transform.forward());
+    let y_offset = (-0.3 + ((time.elapsed_seconds() * frequency + phase).sin()) * 0.025)
+        * camera_transform.up();
+
+    let offset = (0.35 * camera_transform.right()) + y_offset + (0.9 * camera_transform.forward());
 
     let desired_translation = camera_transform.translation + offset;
 
