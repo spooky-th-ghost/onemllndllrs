@@ -20,6 +20,8 @@ impl Plugin for MovementPlugin {
                 rotate_character_to_direction,
                 update_character_momentum,
                 apply_momentum,
+                handle_grounded,
+                handle_jumping,
             )
                 .chain()
                 .in_set(PlayerSet::Movement),
@@ -36,6 +38,9 @@ pub struct Character;
 
 #[derive(Component)]
 pub struct Player;
+
+#[derive(Component)]
+pub struct Grounded;
 
 #[derive(Component)]
 pub struct Strafe;
@@ -110,7 +115,7 @@ fn spawn_player(
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Capsule::default())),
             material: materials.add(Color::MIDNIGHT_BLUE.into()),
-            transform: Transform::from_xyz(0.0, 1.0, 0.0),
+            transform: Transform::from_xyz(0.0, 10.0, 0.0),
             ..default()
         })
         .insert(RigidBody::Dynamic)
@@ -131,6 +136,7 @@ fn spawn_player(
         .insert(Momentum::default())
         .insert(Movespeed::default())
         .insert(Player)
+        .insert(Name::new("Player"))
         .insert(Character);
     // .with_children(|parent| {
     //     parent.spawn(PbrBundle {
@@ -215,6 +221,88 @@ fn apply_momentum(mut query: Query<(&mut Velocity, &Momentum)>) {
             velocity.linvel.x = velocity_to_apply.x;
             velocity.linvel.z = velocity_to_apply.z;
         }
+    }
+}
+
+fn handle_grounded(
+    mut commands: Commands,
+    player_query: Query<(Entity, &Transform, bevy::ecs::query::Has<Grounded>), With<Player>>,
+    rapier_context: Res<RapierContext>,
+) {
+    for (entity, transform, is_grounded) in &player_query {
+        let ray_origin = transform.translation;
+        let ray_dir = Vec3::NEG_Y;
+        let max_distance = 1.1;
+        let filter = QueryFilter {
+            exclude_collider: Some(entity),
+            exclude_rigid_body: Some(entity),
+            ..default()
+        };
+        if let Some((_, _)) =
+            rapier_context.cast_ray(ray_origin, ray_dir, max_distance, false, filter)
+        {
+            if !is_grounded {
+                commands.entity(entity).insert(Grounded);
+            }
+
+            commands.entity(entity).remove::<TouchingWall>();
+        } else {
+            if is_grounded {
+                commands.entity(entity).remove::<Grounded>();
+            }
+        }
+    }
+}
+
+fn handle_jumping(
+    mut commands: Commands,
+    player_query: Query<(Entity, &ActionState<PlayerAction>), (With<Grounded>, With<Player>)>,
+) {
+    for (entity, action) in &player_query {
+        if action.just_pressed(PlayerAction::Jump) {
+            commands
+                .entity(entity)
+                .remove::<ExternalImpulse>()
+                .insert(ExternalImpulse {
+                    impulse: Vec3::Y * 15.0,
+                    ..default()
+                });
+        }
+    }
+}
+
+#[derive(Component)]
+pub enum TouchingWall {
+    Left,
+    Right,
+}
+
+fn handle_wall_run(
+    mut commands: Commands,
+    player_query: Query<(Entity, &Transform), (With<Player>, Without<Grounded>)>,
+    rapier_context: Res<RapierContext>,
+) {
+    for (entity, transform) in &player_query {
+        let ray_origin = transform.translation;
+        let filter = QueryFilter {
+            exclude_collider: Some(entity),
+            exclude_rigid_body: Some(entity),
+            ..default()
+        };
+        let max_distance = 0.6;
+
+        // Right Ray
+        let right_ray_dir = transform.right();
+        if let Some((_, _)) =
+            rapier_context.cast_ray(ray_origin, right_ray_dir, max_distance, false, filter)
+        {
+        }
+
+        // Left Ray
+        let left_ray_dir = transform.left();
+        if let Some((_, _)) =
+            rapier_context.cast_ray(ray_origin, left_ray_dir, max_distance, false, filter)
+        {}
     }
 }
 

@@ -19,8 +19,8 @@ impl Plugin for PlayerCameraPlugin {
                 target_player,
                 position_and_rotate_camera,
                 move_first_person_gun,
-            )
-                .chain(),
+                aim_down_sights,
+            ),
         );
     }
 }
@@ -213,19 +213,47 @@ fn move_first_person_gun(
     mut gun_query: Query<(&mut Transform, &FirstPersonGun), Without<PrimaryCamera>>,
 ) {
     let camera_transform = camera_query.single();
-    let (mut gun_transform, _) = gun_query.single_mut();
-    let frequency = 2.5;
-    let phase = 0.0;
+    let (mut gun_transform, gun) = gun_query.single_mut();
 
-    let y_offset = (-0.3 + ((time.elapsed_seconds() * frequency + phase).sin()) * 0.025)
-        * camera_transform.up();
+    let desired_translation = match gun.0 {
+        AimMode::Hip => {
+            let frequency = 2.5;
+            let phase = 0.0;
 
-    let offset = (0.35 * camera_transform.right()) + y_offset + (0.9 * camera_transform.forward());
+            let y_offset = (-0.3 + ((time.elapsed_seconds() * frequency + phase).sin()) * 0.025)
+                * camera_transform.up();
 
-    let desired_translation = camera_transform.translation + offset;
+            let offset =
+                (0.35 * camera_transform.right()) + y_offset + (0.9 * camera_transform.forward());
 
-    gun_transform.translation = desired_translation;
+            camera_transform.translation + offset
+        }
+        AimMode::Sights => {
+            let offset = (camera_transform.forward() * 0.5) + (camera_transform.up() * -0.2);
+            camera_transform.translation + offset
+        }
+    };
+
+    gun_transform.translation = gun_transform
+        .translation
+        .lerp(desired_translation, 30.0 * time.delta_seconds());
+    // gun_transform.translation = desired_translation;
     gun_transform.rotation = camera_transform.rotation;
+}
+
+fn aim_down_sights(
+    mut gun_query: Query<&mut FirstPersonGun>,
+    player_query: Query<&ActionState<PlayerAction>, Without<FirstPersonGun>>,
+) {
+    for action in &player_query {
+        for mut gun in &mut gun_query {
+            if action.pressed(PlayerAction::AimDownSights) {
+                gun.0 = AimMode::Sights;
+            } else {
+                gun.0 = AimMode::Hip;
+            }
+        }
+    }
 }
 
 fn spawn_camera(mut commands: Commands, assets: Res<AssetServer>) {
