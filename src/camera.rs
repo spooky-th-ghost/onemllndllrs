@@ -44,6 +44,7 @@ pub struct PrimaryCamera {
     pub target: Vec3,
     pub mode: CameraMode,
     pub perspective: CameraPerspective,
+    pub fov_degrees: f32,
 }
 
 impl PrimaryCamera {
@@ -75,6 +76,7 @@ impl Default for PrimaryCamera {
             target: Vec3::ZERO,
             mode: CameraMode::Shoot,
             perspective: CameraPerspective::FirstPerson,
+            fov_degrees: 45.0,
         }
     }
 }
@@ -237,20 +239,33 @@ fn move_first_person_gun(
     gun_transform.translation = gun_transform
         .translation
         .lerp(desired_translation, 30.0 * time.delta_seconds());
-    // gun_transform.translation = desired_translation;
     gun_transform.rotation = camera_transform.rotation;
 }
 
 fn aim_down_sights(
+    time: Res<Time>,
     mut gun_query: Query<&mut FirstPersonGun>,
+    mut camera_query: Query<(&mut Projection, &mut PrimaryCamera)>,
     player_query: Query<&ActionState<PlayerAction>, Without<FirstPersonGun>>,
 ) {
+    let lerp = |a: f32, b: f32| {
+        let f = time.delta_seconds() * 30.0;
+        a * (1.0 - f) + (b * f)
+    };
     for action in &player_query {
         for mut gun in &mut gun_query {
-            if action.pressed(PlayerAction::AimDownSights) {
-                gun.0 = AimMode::Sights;
-            } else {
-                gun.0 = AimMode::Hip;
+            for (mut projection, mut camera) in &mut camera_query {
+                if action.pressed(PlayerAction::AimDownSights) {
+                    gun.0 = AimMode::Sights;
+                    camera.fov_degrees = lerp(camera.fov_degrees, 20.0);
+                } else {
+                    gun.0 = AimMode::Hip;
+                    camera.fov_degrees = lerp(camera.fov_degrees, 45.0);
+                }
+                *projection = Projection::Perspective(PerspectiveProjection {
+                    fov: camera.fov_degrees.to_radians(),
+                    ..default()
+                });
             }
         }
     }
