@@ -1,5 +1,5 @@
 use crate::{GameState, Player, PlayerAction, PlayerSet};
-use bevy::{core_pipeline::Skybox, prelude::*};
+use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 pub struct PlayerCameraPlugin;
@@ -296,12 +296,6 @@ fn spawn_camera(mut commands: Commands, assets: Res<AssetServer>) {
             ..default()
         })
         .insert(PrimaryCamera::default());
-    // .with_children(|parent| {
-    //     parent.spawn(SceneBundle {
-    //         scene: assets.load("gun.glb#Scene0"),
-    //         ..default()
-    //     });
-    // });
     commands
         .spawn(SceneBundle {
             scene: assets.load("gun.glb#Scene0"),
