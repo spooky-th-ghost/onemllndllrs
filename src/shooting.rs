@@ -2,10 +2,11 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::{ExternalImpulse, RapierContext, RigidBody};
 use leafwing_input_manager::prelude::*;
 
+use crate::camera::CameraFocus;
 use crate::inventory::Belt;
 use crate::money::Wallet;
 use crate::weapon::{Shot, TriggerMode};
-use crate::{GameState, Player, PlayerAction, PlayerSet, PrimaryCamera};
+use crate::{GameState, Player, PlayerAction, PlayerSet};
 
 pub struct ShootingPlugin;
 
@@ -30,11 +31,10 @@ pub struct ShotEvent {
 pub fn handle_shooting(
     mut commands: Commands,
     mut player_query: Query<&ActionState<PlayerAction>, With<Player>>,
-    camera_query: Query<&Transform, With<PrimaryCamera>>,
+    camera_focus: Res<CameraFocus>,
     mut belt: ResMut<Belt>,
     rapier_context: Res<RapierContext>,
 ) {
-    let camera_transform = camera_query.single();
     let action = player_query.single_mut();
 
     let mut shot_to_fire = match belt.get_trigger_mode() {
@@ -92,7 +92,7 @@ pub fn handle_shooting(
 pub fn debug_shooting(
     mut commands: Commands,
     player_query: Query<(Entity, &ActionState<PlayerAction>), With<Player>>,
-    camera_query: Query<&Transform, With<PrimaryCamera>>,
+    camera_focus: Res<CameraFocus>,
     cube_query: Query<
         (&Transform, bevy::ecs::query::Has<ExternalImpulse>),
         (With<RigidBody>, Without<Player>),
@@ -101,11 +101,10 @@ pub fn debug_shooting(
     rapier_context: Res<RapierContext>,
 ) {
     let (player_entity, action) = player_query.single();
-    let camera_transform = camera_query.single();
 
     if action.just_pressed(PlayerAction::Shoot) {
-        let ray_origin = camera_transform.translation;
-        let ray_dir = camera_transform.forward();
+        let ray_origin = camera_focus.origin;
+        let ray_dir = camera_focus.forward;
         let max_toi = 100.0;
         let solid = false;
         let filter = bevy_rapier3d::pipeline::QueryFilter {
@@ -122,12 +121,12 @@ pub fn debug_shooting(
 
             shot_events.send(ShotEvent {
                 shot_entity: entity,
-                shot_impulse: camera_transform.forward() * 10.0,
+                shot_impulse: camera_focus.forward * 10.0,
                 collision_point: intersection.point,
             });
 
             let impulse = ExternalImpulse::at_point(
-                camera_transform.forward() * 10.0,
+                camera_focus.forward * 10.0,
                 intersection.point,
                 center_of_mass,
             );
