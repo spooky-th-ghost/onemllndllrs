@@ -22,6 +22,7 @@ impl Plugin for MovementPlugin {
                 apply_momentum,
                 handle_grounded,
                 handle_jumping,
+                handle_wall_detection,
             )
                 .chain()
                 .in_set(PlayerSet::Movement),
@@ -277,32 +278,49 @@ pub enum TouchingWall {
     Right,
 }
 
-fn handle_wall_run(
+fn handle_wall_detection(
     mut commands: Commands,
-    player_query: Query<(Entity, &Transform), (With<Player>, Without<Grounded>)>,
+    player_query: Query<
+        (Entity, &Transform, bevy::ecs::query::Has<TouchingWall>),
+        (With<Player>, Without<Grounded>),
+    >,
     rapier_context: Res<RapierContext>,
 ) {
-    for (entity, transform) in &player_query {
+    for (entity, transform, touching_wall) in &player_query {
         let ray_origin = transform.translation;
         let filter = QueryFilter {
             exclude_collider: Some(entity),
             exclude_rigid_body: Some(entity),
             ..default()
         };
-        let max_distance = 0.6;
+        let max_distance = 0.8;
+
+        let mut wall_contact: Option<TouchingWall> = None;
 
         // Right Ray
         let right_ray_dir = transform.right();
         if let Some((_, _)) =
             rapier_context.cast_ray(ray_origin, right_ray_dir, max_distance, false, filter)
         {
+            wall_contact = Some(TouchingWall::Right);
         }
 
         // Left Ray
         let left_ray_dir = transform.left();
         if let Some((_, _)) =
             rapier_context.cast_ray(ray_origin, left_ray_dir, max_distance, false, filter)
-        {}
+        {
+            wall_contact = Some(TouchingWall::Left);
+        }
+
+        if touching_wall {
+            commands.entity(entity).remove::<TouchingWall>();
+        }
+
+        if let Some(wall) = wall_contact {
+            commands.entity(entity).insert(wall);
+            println!("Touching wall");
+        }
     }
 }
 
