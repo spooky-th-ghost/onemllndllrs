@@ -6,23 +6,31 @@ pub struct PlayerCameraPlugin;
 
 impl Plugin for PlayerCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_set(
-            Update,
-            PlayerSet::Camera.run_if(in_state(GameState::RunAndGun)),
-        )
-        .add_systems(Startup, spawn_camera)
-        .add_systems(
-            Update,
-            (
-                read_rotation_inputs_primary,
-                switch_camera_perspective,
-                target_player,
-                position_and_rotate_camera,
-                move_first_person_gun,
-                aim_down_sights,
-            ),
-        );
+        app.insert_resource(CameraFocus::default())
+            .configure_set(
+                Update,
+                PlayerSet::Camera.run_if(in_state(GameState::RunAndGun)),
+            )
+            .add_systems(Startup, spawn_camera)
+            .add_systems(
+                Update,
+                (
+                    read_rotation_inputs_primary,
+                    switch_camera_perspective,
+                    target_player,
+                    position_and_rotate_camera,
+                    move_first_person_gun,
+                    aim_down_sights,
+                    update_camera_focus,
+                ),
+            );
     }
+}
+
+#[derive(Resource, Default)]
+pub struct CameraFocus {
+    pub origin: Vec3,
+    pub forward: Vec3,
 }
 
 pub enum CameraMode {
@@ -268,6 +276,16 @@ fn aim_down_sights(
                 });
             }
         }
+    }
+}
+
+fn update_camera_focus(
+    mut camera_focus: ResMut<CameraFocus>,
+    camera_query: Query<&Transform, With<PrimaryCamera>>,
+) {
+    for transform in &camera_query {
+        camera_focus.origin = transform.translation;
+        camera_focus.forward = transform.forward();
     }
 }
 
