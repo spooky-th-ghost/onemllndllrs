@@ -43,10 +43,10 @@ impl CameraFocus {
     }
 
     pub fn forward_randomized(&self, range: f32) -> Vec3 {
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let rot_x = rng.gen_range(-range..range).to_radians();
-        let rot_y = rng.gen_range(-range..range).to_radians();
+        let radius = (range * rand::random::<f32>()).sqrt();
+        let theta = rand::random::<f32>() * 2.0 * std::f32::consts::PI;
+        let rot_x = (radius * theta.cos()).to_radians();
+        let rot_y = (radius * theta.sin()).to_radians();
         let random_rotation = Quat::from_axis_angle(Vec3::new(0.0, 1.0, 0.0), rot_y)
             .mul_quat(Quat::from_axis_angle(Vec3::new(1.0, 0.0, 0.0), rot_x));
         random_rotation.mul_vec3(self.forward)

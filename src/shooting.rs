@@ -109,7 +109,7 @@ pub fn debug_shooting(
 
     if action.just_pressed(PlayerAction::Shoot) {
         let ray_origin = camera_focus.origin();
-        let ray_dir = camera_focus.forward_randomized(5.0);
+        let ray_dir = camera_focus.forward_randomized(20.0);
         let max_toi = 100.0;
         let solid = false;
         let filter = bevy_rapier3d::pipeline::QueryFilter {
