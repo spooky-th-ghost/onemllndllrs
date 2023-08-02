@@ -4,7 +4,6 @@ use leafwing_input_manager::prelude::*;
 
 use crate::camera::CameraFocus;
 use crate::inventory::Belt;
-use crate::money::Wallet;
 use crate::weapon::{Shot, TriggerMode};
 use crate::{GameState, Player, PlayerAction, PlayerSet};
 
@@ -17,7 +16,10 @@ impl Plugin for ShootingPlugin {
                 Update,
                 PlayerSet::Combat.run_if(in_state(GameState::RunAndGun)),
             )
-            .add_systems(Update, debug_shooting.in_set(PlayerSet::Combat));
+            .add_systems(
+                Update,
+                (debug_shooting.in_set(PlayerSet::Combat), render_bulletholes),
+            );
     }
 }
 
@@ -89,6 +91,9 @@ pub fn handle_shooting(
     //TODO: Fire the actual projectile
 }
 
+#[derive(Component)]
+pub struct BulletHole;
+
 pub fn debug_shooting(
     mut commands: Commands,
     player_query: Query<(Entity, &ActionState<PlayerAction>), With<Player>>,
@@ -103,8 +108,8 @@ pub fn debug_shooting(
     let (player_entity, action) = player_query.single();
 
     if action.just_pressed(PlayerAction::Shoot) {
-        let ray_origin = camera_focus.origin;
-        let ray_dir = camera_focus.forward;
+        let ray_origin = camera_focus.origin();
+        let ray_dir = camera_focus.forward_randomized(5.0);
         let max_toi = 100.0;
         let solid = false;
         let filter = bevy_rapier3d::pipeline::QueryFilter {
@@ -117,16 +122,17 @@ pub fn debug_shooting(
             rapier_context.cast_ray_and_get_normal(ray_origin, ray_dir, max_toi, solid, filter)
         {
             let (hit_transform, has_external) = cube_query.get(entity).unwrap();
+
             let center_of_mass = hit_transform.translation;
 
             shot_events.send(ShotEvent {
                 shot_entity: entity,
-                shot_impulse: camera_focus.forward * 10.0,
+                shot_impulse: camera_focus.forward() * 10.0,
                 collision_point: intersection.point,
             });
 
             let impulse = ExternalImpulse::at_point(
-                camera_focus.forward * 10.0,
+                camera_focus.forward() * 10.0,
                 intersection.point,
                 center_of_mass,
             );
@@ -139,6 +145,18 @@ pub fn debug_shooting(
             } else {
                 commands.entity(entity).insert(impulse);
             }
+            commands.spawn((
+                TransformBundle::from_transform(
+                    Transform::default().with_translation(intersection.point),
+                ),
+                BulletHole,
+            ));
         }
+    }
+}
+
+pub fn render_bulletholes(hole_query: Query<&Transform, With<BulletHole>>, mut gizmos: Gizmos) {
+    for transform in &hole_query {
+        gizmos.sphere(transform.translation, Quat::default(), 0.1, Color::RED);
     }
 }

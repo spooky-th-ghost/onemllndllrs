@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_gltf_components::ComponentsFromGltfPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
 use leafwing_input_manager::prelude::InputManagerPlugin;
@@ -61,6 +62,7 @@ fn main() {
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(InputManagerPlugin::<PlayerAction>::default())
         .add_plugins(WorldInspectorPlugin::default())
+        .add_plugins(ComponentsFromGltfPlugin)
         .insert_resource(RapierConfiguration {
             gravity: Vec3::Y * -30.0,
             ..default()

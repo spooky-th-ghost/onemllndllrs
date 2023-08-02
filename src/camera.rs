@@ -29,8 +29,28 @@ impl Plugin for PlayerCameraPlugin {
 
 #[derive(Resource, Default)]
 pub struct CameraFocus {
-    pub origin: Vec3,
-    pub forward: Vec3,
+    origin: Vec3,
+    forward: Vec3,
+}
+
+impl CameraFocus {
+    pub fn origin(&self) -> Vec3 {
+        self.origin
+    }
+
+    pub fn forward(&self) -> Vec3 {
+        self.forward
+    }
+
+    pub fn forward_randomized(&self, range: f32) -> Vec3 {
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let rot_x = rng.gen_range(-range..range).to_radians();
+        let rot_y = rng.gen_range(-range..range).to_radians();
+        let random_rotation = Quat::from_axis_angle(Vec3::new(0.0, 1.0, 0.0), rot_y)
+            .mul_quat(Quat::from_axis_angle(Vec3::new(1.0, 0.0, 0.0), rot_x));
+        random_rotation.mul_vec3(self.forward)
+    }
 }
 
 pub enum CameraMode {
