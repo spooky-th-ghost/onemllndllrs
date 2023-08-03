@@ -31,6 +31,7 @@ impl Plugin for PlayerCameraPlugin {
 pub struct CameraFocus {
     origin: Vec3,
     forward: Vec3,
+    right: Vec3,
 }
 
 impl CameraFocus {
@@ -40,6 +41,10 @@ impl CameraFocus {
 
     pub fn forward(&self) -> Vec3 {
         self.forward
+    }
+
+    pub fn right(&self) -> Vec3 {
+        self.right
     }
 
     pub fn forward_randomized(&self, range: f32) -> Vec3 {
@@ -228,7 +233,7 @@ fn position_and_rotate_camera(
 }
 
 #[derive(Component, Default)]
-struct FirstPersonGun(pub AimMode);
+pub struct FirstPersonGun(pub AimMode);
 
 #[derive(Default, PartialEq)]
 pub enum AimMode {
@@ -266,7 +271,7 @@ fn move_first_person_gun(
 
     gun_transform.translation = gun_transform
         .translation
-        .lerp(desired_translation, 30.0 * time.delta_seconds());
+        .lerp(desired_translation, 50.0 * time.delta_seconds());
     gun_transform.rotation = camera_transform.rotation;
 }
 
@@ -306,6 +311,7 @@ fn update_camera_focus(
     for transform in &camera_query {
         camera_focus.origin = transform.translation;
         camera_focus.forward = transform.forward();
+        camera_focus.right = transform.right();
     }
 }
 
@@ -319,6 +325,10 @@ fn spawn_camera(mut commands: Commands, assets: Res<AssetServer>) {
     commands
         .spawn(SceneBundle {
             scene: assets.load("gun.glb#Scene0"),
+            ..default()
+        })
+        .insert(AudioBundle {
+            source: assets.load("gunshot.wav"),
             ..default()
         })
         .insert(FirstPersonGun::default())

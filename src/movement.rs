@@ -2,7 +2,9 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{GameState, InputListenerBundle, PlayerAction, PlayerSet, PrimaryCamera};
+use crate::{
+    camera::CameraFocus, GameState, InputListenerBundle, PlayerAction, PlayerSet, PrimaryCamera,
+};
 
 pub struct MovementPlugin;
 
@@ -139,14 +141,6 @@ fn spawn_player(
         .insert(Player)
         .insert(Name::new("Player"))
         .insert(Character);
-    // .with_children(|parent| {
-    //     parent.spawn(PbrBundle {
-    //         mesh: meshes.add(Mesh::from(shape::Box::new(0.5, 0.5, 0.5))),
-    //         material: materials.add(Color::WHITE.into()),
-    //         transform: Transform::from_xyz(0.0, 0.5, -0.5),
-    //         ..default()
-    //     });
-    // });
 }
 
 fn get_player_direction(
@@ -280,14 +274,15 @@ pub enum TouchingWall {
 
 fn handle_wall_detection(
     mut commands: Commands,
+    camera_focus: Res<CameraFocus>,
     player_query: Query<
-        (Entity, &Transform, bevy::ecs::query::Has<TouchingWall>),
+        (Entity, bevy::ecs::query::Has<TouchingWall>),
         (With<Player>, Without<Grounded>),
     >,
     rapier_context: Res<RapierContext>,
 ) {
-    for (entity, transform, touching_wall) in &player_query {
-        let ray_origin = transform.translation;
+    for (entity, touching_wall) in &player_query {
+        let ray_origin = camera_focus.origin();
         let filter = QueryFilter {
             exclude_collider: Some(entity),
             exclude_rigid_body: Some(entity),
@@ -298,7 +293,7 @@ fn handle_wall_detection(
         let mut wall_contact: Option<TouchingWall> = None;
 
         // Right Ray
-        let right_ray_dir = transform.right();
+        let right_ray_dir = camera_focus.right();
         if let Some((_, _)) =
             rapier_context.cast_ray(ray_origin, right_ray_dir, max_distance, false, filter)
         {
@@ -306,7 +301,7 @@ fn handle_wall_detection(
         }
 
         // Left Ray
-        let left_ray_dir = transform.left();
+        let left_ray_dir = camera_focus.right() * -1.0;
         if let Some((_, _)) =
             rapier_context.cast_ray(ray_origin, left_ray_dir, max_distance, false, filter)
         {

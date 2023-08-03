@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::{ExternalImpulse, RapierContext, RigidBody};
 use leafwing_input_manager::prelude::*;
 
-use crate::camera::CameraFocus;
+use crate::camera::{CameraFocus, FirstPersonGun};
 use crate::inventory::Belt;
 use crate::weapon::{Shot, TriggerMode};
 use crate::{GameState, Player, PlayerAction, PlayerSet};
@@ -103,11 +103,15 @@ pub fn debug_shooting(
         (With<RigidBody>, Without<Player>),
     >,
     mut shot_events: EventWriter<ShotEvent>,
+    gun_query: Query<&AudioSink, With<FirstPersonGun>>,
     rapier_context: Res<RapierContext>,
 ) {
     let (player_entity, action) = player_query.single();
 
     if action.just_pressed(PlayerAction::Shoot) {
+        if let Ok(gun_audio) = gun_query.get_single() {
+            gun_audio.play();
+        }
         let ray_origin = camera_focus.origin();
         let ray_dir = camera_focus.forward_randomized(20.0);
         let max_toi = 100.0;
