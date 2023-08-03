@@ -5,25 +5,18 @@ use bevy_rapier3d::prelude::*;
 use leafwing_input_manager::prelude::InputManagerPlugin;
 
 pub mod camera;
-use camera::*;
 
 pub mod movement;
-use movement::*;
 
 pub mod collision;
-use collision::*;
 
 pub mod input;
-use input::*;
 
 pub mod object;
-use object::*;
 
 pub mod settings;
-use settings::*;
 
 pub mod dialogue;
-use dialogue::*;
 
 pub mod weapon;
 
@@ -31,8 +24,9 @@ pub mod inventory;
 
 pub mod money;
 
+pub mod audio;
+
 pub mod shooting;
-use shooting::*;
 
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum GameState {
@@ -60,7 +54,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
-        .add_plugins(InputManagerPlugin::<PlayerAction>::default())
+        .add_plugins(InputManagerPlugin::<input::PlayerAction>::default())
         .add_plugins(WorldInspectorPlugin::default())
         .add_plugins(ComponentsFromGltfPlugin)
         .insert_resource(RapierConfiguration {
@@ -70,11 +64,12 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, prep_colliders.run_if(should_prep_colliders))
         .add_plugins((
-            PlayerCameraPlugin,
-            MovementPlugin,
-            DialoguePlugin,
-            UserSettingsPlugin,
-            ShootingPlugin,
+            camera::PlayerCameraPlugin,
+            movement::MovementPlugin,
+            dialogue::DialoguePlugin,
+            settings::UserSettingsPlugin,
+            shooting::ShootingPlugin,
+            audio::AudioPlugin,
         ))
         .run();
 }

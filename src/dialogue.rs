@@ -2,14 +2,14 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::DisplaySettings;
+use crate::settings::DisplaySettings;
 
 pub struct DialoguePlugin;
 
 impl Plugin for DialoguePlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_text_box)
-            .add_system(update_dialogue);
+        app.add_systems(Startup, setup_text_box)
+            .add_systems(Update, update_dialogue);
     }
 }
 

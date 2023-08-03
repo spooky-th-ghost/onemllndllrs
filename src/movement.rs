@@ -3,7 +3,10 @@ use bevy_rapier3d::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use crate::{
-    camera::CameraFocus, GameState, InputListenerBundle, PlayerAction, PlayerSet, PrimaryCamera,
+    camera::CameraFocus,
+    camera::PrimaryCamera,
+    input::{InputListenerBundle, PlayerAction},
+    GameState, PlayerSet,
 };
 
 pub struct MovementPlugin;

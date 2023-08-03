@@ -1,4 +1,4 @@
-use crate::{GameState, Player, PlayerAction, PlayerSet};
+use crate::{input::PlayerAction, movement::Player, GameState, PlayerSet};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
@@ -325,10 +325,6 @@ fn spawn_camera(mut commands: Commands, assets: Res<AssetServer>) {
     commands
         .spawn(SceneBundle {
             scene: assets.load("gun.glb#Scene0"),
-            ..default()
-        })
-        .insert(AudioBundle {
-            source: assets.load("gunshot.wav"),
             ..default()
         })
         .insert(FirstPersonGun::default())
