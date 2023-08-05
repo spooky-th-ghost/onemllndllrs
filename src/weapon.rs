@@ -1,7 +1,11 @@
-use crate::money::{Money, Wallet};
+use crate::{
+    camera::CameraFocus,
+    money::{Money, Wallet},
+};
 use bevy::prelude::*;
 use std::time::Duration;
 
+#[derive(Default)]
 pub struct Gun {
     muzzle: Muzzle,
     receiver: Receiver,
@@ -21,45 +25,62 @@ impl Gun {
         }
     }
 
-    pub fn fire(&mut self) -> Option<Shot> {
+    pub fn fire(&mut self, camera_focus: Res<CameraFocus>) -> FireResult {
         if self.trigger.can_fire() && !self.reloading {
             if self.clip.spend_ammo() {
                 use FireType::*;
                 let shot = match self.receiver.fire_type {
-                    Hitscan => Shot::SingleHitscan {
+                    Hitscan => ShotEvent::Raycast(vec![RaycastShot {
                         base_damage: self.receiver.base_damage,
                         range: self.muzzle.get_range(),
-                        force_applied: self.receiver.get_force(),
-                    },
-                    HitscanSpread(amount) => Shot::MultiHitscan {
+                        force: self.receiver.get_force(),
+                        dir: camera_focus.forward_randomized(self.muzzle.get_spread()),
+                        origin: camera_focus.origin(),
+                    }]),
+                    HitscanSpread(amount) => {
+                        let mut shots_vec: Vec<RaycastShot> = Vec::new();
+
+                        for _ in 1..amount {
+                            shots_vec.push(RaycastShot {
+                                base_damage: self.receiver.base_damage,
+                                range: self.muzzle.get_range(),
+                                force: self.receiver.get_force(),
+                                dir: camera_focus.forward_randomized(self.muzzle.get_spread()),
+                                origin: camera_focus.origin(),
+                            });
+                        }
+                        ShotEvent::Raycast(shots_vec)
+                    }
+                    Projectile => ShotEvent::Projectile(vec![ProjectileShot {
                         base_damage: self.receiver.base_damage,
-                        range: self.muzzle.get_range(),
-                        force_applied: self.receiver.get_force(),
-                        count: amount,
-                        spread: self.muzzle.get_spread(),
-                    },
-                    Projectile => Shot::SingleProjectile {
-                        base_damage: self.receiver.base_damage,
-                        range: self.muzzle.get_range(),
-                        force_applied: self.receiver.get_force(),
-                    },
-                    ProjectileSpread(amount) => Shot::MultiProjectile {
-                        base_damage: self.receiver.base_damage,
-                        range: self.muzzle.get_range(),
-                        force_applied: self.receiver.get_force(),
-                        count: amount,
-                        spread: self.muzzle.get_spread(),
-                    },
+                        speed: 30.0,
+                        force: self.receiver.get_force(),
+                        dir: camera_focus.forward_randomized(self.muzzle.get_spread()),
+                        origin: camera_focus.origin(),
+                    }]),
+                    ProjectileSpread(amount) => {
+                        let mut shots_vec: Vec<ProjectileShot> = Vec::new();
+
+                        for _ in 1..amount {
+                            shots_vec.push(ProjectileShot {
+                                base_damage: self.receiver.base_damage,
+                                speed: 30.0,
+                                force: self.receiver.get_force(),
+                                dir: camera_focus.forward_randomized(self.muzzle.get_spread()),
+                                origin: camera_focus.origin(),
+                            });
+                        }
+                        ShotEvent::Projectile(shots_vec)
+                    }
                 };
                 self.trigger.fire();
                 self.muzzle.increase_spread();
-                Some(shot)
+                FireResult::Shot(shot)
             } else {
-                //TODO: Play the click sound
-                None
+                FireResult::EmptyClip
             }
         } else {
-            None
+            FireResult::NoAction
         }
     }
 
@@ -104,10 +125,42 @@ pub enum Shot {
     },
 }
 
+pub enum FireResult {
+    Shot(ShotEvent),
+    EmptyClip,
+    NoAction,
+}
+
+#[derive(Event)]
+pub enum ShotEvent {
+    Raycast(Vec<RaycastShot>),
+    Projectile(Vec<ProjectileShot>),
+}
+
+#[derive(Default)]
+pub struct RaycastShot {
+    pub base_damage: u16,
+    pub origin: Vec3,
+    pub dir: Vec3,
+    pub range: f32,
+    pub force: f32,
+}
+
+#[derive(Default)]
+pub struct ProjectileShot {
+    pub base_damage: u16,
+    pub origin: Vec3,
+    pub dir: Vec3,
+    pub speed: f32,
+    pub force: f32,
+}
+
+#[derive(Default)]
 pub struct Receiver {
     fire_type: FireType,
     base_damage: u16,
     force_transfer: f32,
+    kick: f32,
 }
 
 impl Receiver {
@@ -116,6 +169,7 @@ impl Receiver {
     }
 }
 
+#[derive(Default)]
 pub struct Clip {
     max: u8,
     current: u8,
@@ -160,6 +214,7 @@ pub struct ClipStats {
     pub current: u8,
 }
 
+#[derive(Default)]
 pub struct Muzzle {
     min_spread: f32,
     max_spread: f32,
@@ -192,6 +247,7 @@ impl Muzzle {
     }
 }
 
+#[derive(Default)]
 pub struct Trigger {
     trigger_mode: TriggerMode,
     shot_timer: Timer,
@@ -222,13 +278,16 @@ impl Trigger {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub enum TriggerMode {
     Auto,
+    #[default]
     SemiAuto,
 }
 
+#[derive(Default)]
 pub enum FireType {
+    #[default]
     Hitscan,
     HitscanSpread(u8),
     Projectile,

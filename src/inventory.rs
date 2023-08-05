@@ -1,6 +1,7 @@
 use crate::{
+    camera::CameraFocus,
     money::Wallet,
-    weapon::{Gun, Shot, TriggerMode},
+    weapon::{FireResult, Gun, Shot, ShotEvent, TriggerMode},
 };
 use bevy::{prelude::*, utils::HashMap};
 use std::time::Duration;
@@ -10,7 +11,7 @@ pub struct Inventory {
     items: HashMap<ItemId, Item>,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct Belt {
     pub gun: Gun,
 }
@@ -24,8 +25,8 @@ impl Belt {
         self.gun.tick(delta);
     }
 
-    pub fn fire(&mut self) -> Option<Shot> {
-        self.gun.fire()
+    pub fn fire(&mut self, camera_focus: Res<CameraFocus>) -> FireResult {
+        self.gun.fire(camera_focus)
     }
 
     pub fn reload(&mut self, wallet: ResMut<Wallet>) {

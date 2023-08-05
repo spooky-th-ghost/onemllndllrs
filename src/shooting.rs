@@ -3,9 +3,9 @@ use bevy_rapier3d::prelude::{ExternalImpulse, RapierContext, RigidBody};
 use leafwing_input_manager::prelude::*;
 
 use crate::audio::SoundBank;
-use crate::camera::{CameraFocus, FirstPersonGun};
+use crate::camera::CameraFocus;
 use crate::inventory::Belt;
-use crate::weapon::{Shot, TriggerMode};
+use crate::weapon::{FireResult, Shot, ShotEvent, TriggerMode};
 use crate::{input::PlayerAction, movement::Player, GameState, PlayerSet};
 
 pub struct ShootingPlugin;
@@ -13,83 +13,64 @@ pub struct ShootingPlugin;
 impl Plugin for ShootingPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ShotEvent>()
+            .insert_resource(Belt::default())
             .configure_set(
                 Update,
                 PlayerSet::Combat.run_if(in_state(GameState::RunAndGun)),
             )
             .add_systems(
                 Update,
-                (debug_shooting.in_set(PlayerSet::Combat), render_bulletholes),
+                (
+                    debug_shooting.in_set(PlayerSet::Combat),
+                    render_bulletholes,
+                    gun_upkeep,
+                ),
             );
     }
 }
 
-#[derive(Event)]
-pub struct ShotEvent {
-    pub shot_entity: Entity,
-    pub shot_impulse: Vec3,
-    pub collision_point: Vec3,
+pub fn gun_upkeep(time: Res<Time>, mut belt: ResMut<Belt>) {
+    belt.gun.tick(time.delta());
 }
 
-pub fn handle_shooting(
+pub fn send_shot_events(
     mut commands: Commands,
     mut player_query: Query<&ActionState<PlayerAction>, With<Player>>,
     camera_focus: Res<CameraFocus>,
+    sound_bank: Res<SoundBank>,
     mut belt: ResMut<Belt>,
-    rapier_context: Res<RapierContext>,
+    mut shot_events: EventWriter<ShotEvent>,
 ) {
+    //TODO: Next steps
+    // 2. create smg style gun
+    // 3. ammo count
+    // 4. reloading
+    // 5. money
     let action = player_query.single_mut();
 
-    let mut shot_to_fire = match belt.get_trigger_mode() {
+    let shot_to_fire = match belt.get_trigger_mode() {
         TriggerMode::Auto => {
             if action.pressed(PlayerAction::Shoot) {
-                belt.fire()
+                belt.fire(camera_focus)
             } else {
-                None
+                FireResult::NoAction
             }
         }
         TriggerMode::SemiAuto => {
             if action.just_pressed(PlayerAction::Shoot) {
-                belt.fire()
+                belt.fire(camera_focus)
             } else {
-                None
+                FireResult::NoAction
             }
         }
     };
-
-    if let Some(shot) = shot_to_fire {
-        match shot {
-            Shot::SingleHitscan {
-                base_damage,
-                range,
-                force_applied,
-            } => {}
-            Shot::MultiHitscan {
-                base_damage,
-                range,
-                force_applied,
-                count,
-                spread,
-            } => {
-                for _ in 0..count {
-                    // Cast a ray, randomize the direction slightly based on spread
-                }
-            }
-            Shot::SingleProjectile {
-                base_damage,
-                range,
-                force_applied,
-            } => {}
-            Shot::MultiProjectile {
-                base_damage,
-                range,
-                force_applied,
-                count,
-                spread,
-            } => {}
+    match shot_to_fire {
+        FireResult::Shot(shot) => shot_events.send(shot),
+        FireResult::EmptyClip => {
+            commands.spawn(sound_bank.empty_fire());
         }
+        _ => (),
     }
-    //TODO: Fire the actual projectile
 }
 
 #[derive(Component)]
@@ -104,13 +85,13 @@ pub fn debug_shooting(
         (&Transform, bevy::ecs::query::Has<ExternalImpulse>),
         (With<RigidBody>, Without<Player>),
     >,
-    mut shot_events: EventWriter<ShotEvent>,
     rapier_context: Res<RapierContext>,
 ) {
     let (player_entity, action) = player_query.single();
 
     if action.pressed(PlayerAction::Shoot) {
-        commands.spawn(sound_bank.sound_bundle());
+        commands.spawn(sound_bank.empty_fire());
+        // commands.spawn(sound_bank.bullet_shot());
         let ray_origin = camera_focus.origin();
         let ray_dir = camera_focus.forward_randomized(20.0);
         let max_toi = 100.0;
@@ -128,11 +109,11 @@ pub fn debug_shooting(
 
             let center_of_mass = hit_transform.translation;
 
-            shot_events.send(ShotEvent {
-                shot_entity: entity,
-                shot_impulse: camera_focus.forward() * 10.0,
-                collision_point: intersection.point,
-            });
+            // shot_events.send(ShotEvent {
+            //     shot_entity: entity,
+            //     shot_impulse: camera_focus.forward() * 10.0,
+            //     collision_point: intersection.point,
+            // });
 
             let impulse = ExternalImpulse::at_point(
                 camera_focus.forward() * 10.0,
