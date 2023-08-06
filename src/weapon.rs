@@ -5,7 +5,6 @@ use crate::{
 use bevy::prelude::*;
 use std::time::Duration;
 
-#[derive(Default)]
 pub struct Gun {
     muzzle: Muzzle,
     receiver: Receiver,
@@ -13,6 +12,34 @@ pub struct Gun {
     trigger: Trigger,
     reload_timer: Timer,
     reloading: bool,
+}
+
+impl Default for Gun {
+    fn default() -> Self {
+        Gun {
+            muzzle: Muzzle {
+                min_spread: 0.0,
+                max_spread: 30.0,
+                current_spread: 0.0,
+                bloom: 1.0,
+                max_range: 30.0,
+            },
+            receiver: Receiver {
+                fire_type: FireType::Hitscan,
+                base_damage: 10,
+                force_transfer: 1.0,
+                kick: 2.0,
+            },
+            clip: Clip {
+                max: 30,
+                current: 30,
+                reload_time: 1.0,
+            },
+            trigger: Trigger::auto(),
+            reload_timer: Timer::default(),
+            reloading: false,
+        }
+    }
 }
 
 impl Gun {
@@ -242,7 +269,7 @@ impl Muzzle {
     fn reduce_spread(&mut self) {
         let start = self.current_spread;
         let end = self.min_spread;
-        let t = self.bloom;
+        let t = self.bloom * 0.25;
         self.current_spread = start * (1.0 - t) + (end * t);
     }
 }
@@ -255,6 +282,22 @@ pub struct Trigger {
 }
 
 impl Trigger {
+    pub fn auto() -> Self {
+        Trigger {
+            trigger_mode: TriggerMode::Auto,
+            shot_timer: Timer::from_seconds(0.1, TimerMode::Repeating),
+            ..default()
+        }
+    }
+
+    pub fn semi_auto() -> Self {
+        Trigger {
+            trigger_mode: TriggerMode::SemiAuto,
+            shot_timer: Timer::from_seconds(0.3, TimerMode::Repeating),
+            ..default()
+        }
+    }
+
     fn can_fire(&self) -> bool {
         self.pullable
     }
@@ -280,8 +323,8 @@ impl Trigger {
 
 #[derive(Clone, Copy, Default)]
 pub enum TriggerMode {
-    Auto,
     #[default]
+    Auto,
     SemiAuto,
 }
 

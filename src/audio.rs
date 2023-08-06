@@ -7,6 +7,11 @@ impl Plugin for AudioPlugin {
         app.add_systems(Startup, load_sounds);
     }
 }
+#[derive(Component)]
+pub struct EmptySound;
+
+type ShotBundle = (AudioBundle, Name);
+type EmptyBundle = (AudioBundle, EmptySound, Name);
 
 #[derive(Resource)]
 pub struct SoundBank {
@@ -15,34 +20,40 @@ pub struct SoundBank {
 }
 
 impl SoundBank {
-    pub fn bullet_shot(&self) -> AudioBundle {
+    pub fn bullet_shot(&self) -> ShotBundle {
         use rand::{thread_rng, Rng};
 
         let mut rng = thread_rng();
         let speed = rng.gen_range(1.0..3.5);
         let volume = rng.gen_range(0.8..1.1);
-
-        AudioSourceBundle {
-            source: self.gun_shot.clone(),
-            settings: PlaybackSettings::DESPAWN
-                .with_volume(Volume::new_relative(volume))
-                .with_speed(speed),
-        }
+        (
+            AudioSourceBundle {
+                source: self.gun_shot.clone(),
+                settings: PlaybackSettings::DESPAWN
+                    .with_volume(Volume::new_relative(volume))
+                    .with_speed(speed),
+            },
+            Name::new("Gunshot"),
+        )
     }
 
-    pub fn empty_fire(&self) -> AudioBundle {
+    pub fn empty_fire(&self) -> EmptyBundle {
         use rand::{thread_rng, Rng};
 
         let mut rng = thread_rng();
         let speed = rng.gen_range(1.0..1.5);
         let volume = rng.gen_range(0.8..1.1);
 
-        AudioSourceBundle {
-            source: self.gun_empty.clone(),
-            settings: PlaybackSettings::DESPAWN
-                .with_volume(Volume::new_relative(volume))
-                .with_speed(speed),
-        }
+        (
+            AudioSourceBundle {
+                source: self.gun_empty.clone(),
+                settings: PlaybackSettings::DESPAWN
+                    .with_volume(Volume::new_relative(volume))
+                    .with_speed(speed),
+            },
+            EmptySound,
+            Name::new("Empty"),
+        )
     }
 }
 

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::{ExternalImpulse, RapierContext, RigidBody};
 use leafwing_input_manager::prelude::*;
 
-use crate::audio::SoundBank;
+use crate::audio::{EmptySound, SoundBank};
 use crate::camera::CameraFocus;
 use crate::inventory::Belt;
 use crate::weapon::{FireResult, Shot, ShotEvent, TriggerMode};
@@ -21,10 +21,12 @@ impl Plugin for ShootingPlugin {
             .add_systems(
                 Update,
                 (
-                    debug_shooting.in_set(PlayerSet::Combat),
+                    send_shot_events,
+                    read_shot_events,
                     render_bulletholes,
                     gun_upkeep,
-                ),
+                )
+                    .in_set(PlayerSet::Combat),
             );
     }
 }
@@ -36,13 +38,13 @@ pub fn gun_upkeep(time: Res<Time>, mut belt: ResMut<Belt>) {
 pub fn send_shot_events(
     mut commands: Commands,
     mut player_query: Query<&ActionState<PlayerAction>, With<Player>>,
+    empty_query: Query<Entity, (With<EmptySound>, Without<Player>)>,
     camera_focus: Res<CameraFocus>,
     sound_bank: Res<SoundBank>,
     mut belt: ResMut<Belt>,
     mut shot_events: EventWriter<ShotEvent>,
 ) {
     //TODO: Next steps
-    // 2. create smg style gun
     // 3. ammo count
     // 4. reloading
     // 5. money
@@ -67,9 +69,84 @@ pub fn send_shot_events(
     match shot_to_fire {
         FireResult::Shot(shot) => shot_events.send(shot),
         FireResult::EmptyClip => {
-            commands.spawn(sound_bank.empty_fire());
+            if empty_query.is_empty() {
+                commands.spawn(sound_bank.empty_fire());
+            }
         }
         _ => (),
+    }
+}
+
+#[derive(Component)]
+pub struct Shootable;
+
+fn read_shot_events(
+    mut commands: Commands,
+    mut shot_events: EventReader<ShotEvent>,
+    player_query: Query<Entity, With<Player>>,
+    shootable_query: Query<
+        (&Transform, bevy::ecs::query::Has<ExternalImpulse>),
+        (With<RigidBody>, With<Shootable>, Without<Player>),
+    >,
+    sound_bank: Res<SoundBank>,
+    rapier_context: Res<RapierContext>,
+) {
+    if let Ok(entity) = player_query.get_single() {
+        for shot_event in shot_events.iter() {
+            commands.spawn(sound_bank.bullet_shot());
+            match shot_event {
+                ShotEvent::Raycast(shots) => {
+                    for shot in shots {
+                        let ray_origin = shot.origin;
+                        let ray_dir = shot.dir;
+                        let max_distance = shot.range;
+                        let solid = false;
+                        let filter = bevy_rapier3d::pipeline::QueryFilter {
+                            exclude_collider: Some(entity),
+                            exclude_rigid_body: Some(entity),
+                            ..default()
+                        };
+
+                        if let Some((entity, intersection)) = rapier_context
+                            .cast_ray_and_get_normal(
+                                ray_origin,
+                                ray_dir,
+                                max_distance,
+                                solid,
+                                filter,
+                            )
+                        {
+                            //Bullet Hole
+                            commands.spawn((
+                                TransformBundle::from_transform(
+                                    Transform::default().with_translation(intersection.point),
+                                ),
+                                BulletHole,
+                                Name::new("Hole"),
+                            ));
+                            if let Ok((hit_transform, has_external)) = shootable_query.get(entity) {
+                                let center_of_mass = hit_transform.translation;
+                                let impulse = ExternalImpulse::at_point(
+                                    shot.dir * 10.0,
+                                    intersection.point,
+                                    center_of_mass,
+                                );
+
+                                if has_external {
+                                    commands
+                                        .entity(entity)
+                                        .remove::<ExternalImpulse>()
+                                        .insert(impulse);
+                                } else {
+                                    commands.entity(entity).insert(impulse);
+                                }
+                            }
+                        }
+                    }
+                }
+                ShotEvent::Projectile(shots) => {}
+            }
+        }
     }
 }
 
