@@ -4,6 +4,7 @@ use leafwing_input_manager::prelude::*;
 
 use crate::audio::{EmptySound, SoundBank};
 use crate::camera::CameraFocus;
+use crate::hud::AmmoDisplay;
 use crate::inventory::Belt;
 use crate::weapon::{FireResult, Shot, ShotEvent, TriggerMode};
 use crate::{input::PlayerAction, movement::Player, GameState, PlayerSet};
@@ -25,6 +26,7 @@ impl Plugin for ShootingPlugin {
                     read_shot_events,
                     render_bulletholes,
                     gun_upkeep,
+                    track_ammo,
                 )
                     .in_set(PlayerSet::Combat),
             );
@@ -33,6 +35,12 @@ impl Plugin for ShootingPlugin {
 
 pub fn gun_upkeep(time: Res<Time>, mut belt: ResMut<Belt>) {
     belt.gun.tick(time.delta());
+}
+
+pub fn track_ammo(mut display_query: Query<&mut Text, With<AmmoDisplay>>, belt: Res<Belt>) {
+    for mut text in &mut display_query {
+        text.sections[0].value = belt.gun.current_ammo().to_string();
+    }
 }
 
 pub fn send_shot_events(

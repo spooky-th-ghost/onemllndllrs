@@ -111,6 +111,10 @@ impl Gun {
         }
     }
 
+    pub fn current_ammo(&self) -> u8 {
+        self.clip.current
+    }
+
     pub fn reload(&mut self, mut wallet: ResMut<Wallet>) {
         let percentage_purchased = self.clip.reload();
 

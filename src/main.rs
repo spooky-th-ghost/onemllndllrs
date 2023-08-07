@@ -26,6 +26,8 @@ pub mod money;
 
 pub mod audio;
 
+pub mod hud;
+
 pub mod shooting;
 
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
@@ -64,6 +66,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, prep_colliders.run_if(should_prep_colliders))
         .add_plugins((
+            hud::HudPlugin,
             camera::PlayerCameraPlugin,
             movement::MovementPlugin,
             dialogue::DialoguePlugin,
