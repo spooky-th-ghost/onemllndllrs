@@ -264,7 +264,7 @@ fn move_first_person_gun(
             camera_transform.translation + offset
         }
         AimMode::Sights => {
-            let offset = (camera_transform.forward() * 0.5) + (camera_transform.up() * -0.2);
+            let offset = (camera_transform.forward() * 0.5) + (camera_transform.up() * -0.25);
             camera_transform.translation + offset
         }
     };

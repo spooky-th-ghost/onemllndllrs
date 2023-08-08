@@ -30,11 +30,7 @@ impl Default for Gun {
                 force_transfer: 1.0,
                 kick: 2.0,
             },
-            clip: Clip {
-                max: 30,
-                current: 30,
-                reload_time: 1.0,
-            },
+            clip: Clip::default(),
             trigger: Trigger::auto(),
             reload_timer: Timer::default(),
             reloading: false,
@@ -124,6 +120,10 @@ impl Gun {
         }
     }
 
+    pub fn is_reloading(&self) -> bool {
+        self.reloading
+    }
+
     pub fn get_trigger_mode(&self) -> TriggerMode {
         self.trigger.get_trigger_mode()
     }
@@ -200,11 +200,11 @@ impl Receiver {
     }
 }
 
-#[derive(Default)]
 pub struct Clip {
     max: u8,
     current: u8,
     reload_time: f32,
+    clip_cost: Money,
 }
 
 impl Clip {
@@ -235,6 +235,17 @@ impl Clip {
             let difference = self.max - self.current;
             self.current = self.max;
             1.0 - (difference as f32 / self.max as f32)
+        }
+    }
+}
+
+impl Default for Clip {
+    fn default() -> Self {
+        Clip {
+            current: 30,
+            max: 30,
+            reload_time: 1.0,
+            clip_cost: 10.0.into(),
         }
     }
 }

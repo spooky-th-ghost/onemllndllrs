@@ -11,6 +11,7 @@ pub enum PlayerAction {
     SwitchPerspective,
     Shoot,
     AimDownSights,
+    Reload,
 }
 
 #[derive(Bundle)]
@@ -26,6 +27,7 @@ impl InputListenerBundle {
             (KeyCode::Space, Jump),
             (KeyCode::Q, SwitchPerspective),
             (KeyCode::ShiftLeft, AimDownSights),
+            (KeyCode::R, Reload),
         ])
         .insert(MouseButton::Left, Shoot)
         .insert_multiple([

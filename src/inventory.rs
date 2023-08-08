@@ -1,7 +1,6 @@
 use crate::{
     camera::CameraFocus,
-    money::Wallet,
-    weapon::{FireResult, Gun, Shot, ShotEvent, TriggerMode},
+    weapon::{FireResult, Gun, TriggerMode},
 };
 use bevy::{prelude::*, utils::HashMap};
 use std::time::Duration;
@@ -27,10 +26,6 @@ impl Belt {
 
     pub fn fire(&mut self, camera_focus: Res<CameraFocus>) -> FireResult {
         self.gun.fire(camera_focus)
-    }
-
-    pub fn reload(&mut self, wallet: ResMut<Wallet>) {
-        self.gun.reload(wallet);
     }
 }
 

@@ -9,20 +9,15 @@ impl Plugin for HudPlugin {
 }
 
 #[derive(Component)]
+pub struct DebtDisplay;
+
+#[derive(Component)]
 pub struct AmmoDisplay;
 
+#[derive(Component)]
+pub struct WalletDisplay;
+
 fn spawn_hud(mut commands: Commands) {
-    // commands
-    //     .spawn(NodeBundle {
-    //         style: Style {
-    //             display: Display::Grid,
-    //             grid_template_rows: RepeatedGridTrack::percent(4, 0.25),
-    //             grid_template_columns: RepeatedGridTrack::percent(4, 0.25),
-    //             ..default()
-    //         },
-    //         ..default()
-    //     })
-    //     .with_children(|parent| {
     commands
         .spawn(TextBundle {
             text: Text {
@@ -53,5 +48,35 @@ fn spawn_hud(mut commands: Commands) {
             ..default()
         })
         .insert(AmmoDisplay);
-    // });
+
+    commands
+        .spawn(TextBundle {
+            text: Text {
+                sections: vec![
+                    TextSection::new(
+                        "Dosh: ",
+                        TextStyle {
+                            font_size: 48.0,
+                            ..default()
+                        },
+                    ),
+                    TextSection::new(
+                        "$0.00",
+                        TextStyle {
+                            font_size: 48.0,
+                            ..default()
+                        },
+                    ),
+                ],
+                alignment: TextAlignment::Center,
+                ..default()
+            },
+            style: Style {
+                left: Val::Percent(-90.0),
+                bottom: Val::Percent(-10.0),
+                ..default()
+            },
+            ..default()
+        })
+        .insert(WalletDisplay);
 }

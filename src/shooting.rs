@@ -6,7 +6,8 @@ use crate::audio::{EmptySound, SoundBank};
 use crate::camera::CameraFocus;
 use crate::hud::AmmoDisplay;
 use crate::inventory::Belt;
-use crate::weapon::{FireResult, Shot, ShotEvent, TriggerMode};
+use crate::money::Wallet;
+use crate::weapon::{FireResult, ShotEvent, TriggerMode};
 use crate::{input::PlayerAction, movement::Player, GameState, PlayerSet};
 
 pub struct ShootingPlugin;
@@ -27,6 +28,8 @@ impl Plugin for ShootingPlugin {
                     render_bulletholes,
                     gun_upkeep,
                     track_ammo,
+                    rotate_clip,
+                    reload_gun,
                 )
                     .in_set(PlayerSet::Combat),
             );
@@ -40,6 +43,36 @@ pub fn gun_upkeep(time: Res<Time>, mut belt: ResMut<Belt>) {
 pub fn track_ammo(mut display_query: Query<&mut Text, With<AmmoDisplay>>, belt: Res<Belt>) {
     for mut text in &mut display_query {
         text.sections[0].value = belt.gun.current_ammo().to_string();
+    }
+}
+
+#[derive(Component)]
+pub struct ClipComponent;
+
+fn rotate_clip(
+    time: Res<Time>,
+    belt: Res<Belt>,
+    mut clip_query: Query<&mut Transform, With<ClipComponent>>,
+) {
+    for mut transform in &mut clip_query {
+        let rotation_speed = if belt.gun.is_reloading() {
+            50.0_f32.to_radians()
+        } else {
+            25.0_f32.to_radians()
+        };
+        transform.rotate_y(25.0_f32.to_radians() * time.delta_seconds());
+    }
+}
+
+fn reload_gun(
+    mut belt: ResMut<Belt>,
+    mut wallet: ResMut<Wallet>,
+    player_query: Query<&ActionState<PlayerAction>>,
+) {
+    if let Ok(action) = player_query.get_single() {
+        if !belt.gun.is_reloading() && action.just_pressed(PlayerAction::Reload) {
+            belt.gun.reload(wallet);
+        }
     }
 }
 

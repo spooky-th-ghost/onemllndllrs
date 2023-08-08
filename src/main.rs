@@ -69,10 +69,11 @@ fn main() {
             hud::HudPlugin,
             camera::PlayerCameraPlugin,
             movement::MovementPlugin,
-            dialogue::DialoguePlugin,
+            //dialogue::DialoguePlugin,
             settings::UserSettingsPlugin,
             shooting::ShootingPlugin,
             audio::AudioPlugin,
+            money::MoneyPlugin,
         ))
         .run();
 }
@@ -108,6 +109,7 @@ fn setup(
             ..default()
         })
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
+        .insert(shooting::Shootable)
         .insert(RigidBody::Dynamic);
     commands
         .spawn(PbrBundle {
@@ -117,6 +119,7 @@ fn setup(
             ..default()
         })
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
+        .insert(shooting::Shootable)
         .insert(RigidBody::Dynamic);
     commands
         .spawn(PbrBundle {
@@ -126,6 +129,7 @@ fn setup(
             ..default()
         })
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
+        .insert(shooting::Shootable)
         .insert(RigidBody::Dynamic);
 
     // Scene
@@ -143,9 +147,20 @@ fn setup(
 #[derive(Component)]
 pub struct ColliderPrepped;
 
-fn should_prep_colliders(cube_query: Query<&Name, Without<ColliderPrepped>>) -> bool {
+fn should_prep_colliders(
+    cube_query: Query<&Name, Without<ColliderPrepped>>,
+    clip_query: Query<&Name, Without<shooting::ClipComponent>>,
+) -> bool {
     let mut needs_prep = false;
     let cube_regex = regex::Regex::new(r"^Cube").unwrap();
+    let clip_regex = regex::Regex::new(r"^Clip").unwrap();
+
+    for name in &clip_query {
+        if clip_regex.is_match(name.as_str()) {
+            needs_prep = true;
+        }
+    }
+
     for name in &cube_query {
         if cube_regex.is_match(name.as_str()) {
             needs_prep = true;
@@ -160,10 +175,17 @@ fn should_prep_colliders(cube_query: Query<&Name, Without<ColliderPrepped>>) -> 
 fn prep_colliders(
     mut commands: Commands,
     cube_query: Query<(&Handle<Mesh>, &Name, Entity), Without<ColliderPrepped>>,
+    clip_query: Query<(&Name, Entity), Without<shooting::ClipComponent>>,
     meshes: Res<Assets<Mesh>>,
     asset_cache: Res<AssetCache>,
 ) {
     let cube_regex = regex::Regex::new(r"^Cube").unwrap();
+    let clip_regex = regex::Regex::new(r"^Clip").unwrap();
+    for (name, entity) in &clip_query {
+        if clip_regex.is_match(name.as_str()) {
+            commands.entity(entity).insert(shooting::ClipComponent);
+        }
+    }
     for (handle, name, entity) in &cube_query {
         if cube_regex.is_match(name.as_str()) {
             if let Some(mesh) = meshes.get(handle) {
@@ -179,14 +201,6 @@ fn prep_colliders(
                         asset_cache.check_material.clone(),
                     ));
             }
-        }
-    }
-}
-
-fn move_starting_platform(time: Res<Time>, mut query: Query<(&mut Transform, &Name)>) {
-    for (mut transform, name) in &mut query {
-        if name.as_str() == "Starting Platform" {
-            transform.translation.y += 0.1 * time.delta_seconds();
         }
     }
 }
