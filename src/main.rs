@@ -6,6 +6,8 @@ use leafwing_input_manager::prelude::InputManagerPlugin;
 
 pub mod camera;
 
+pub mod clock;
+
 pub mod movement;
 
 pub mod collision;
@@ -67,6 +69,7 @@ fn main() {
         .add_systems(Update, prep_colliders.run_if(should_prep_colliders))
         .add_plugins((
             hud::HudPlugin,
+            clock::ClockPlugin,
             camera::PlayerCameraPlugin,
             movement::MovementPlugin,
             //dialogue::DialoguePlugin,
