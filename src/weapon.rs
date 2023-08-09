@@ -115,8 +115,9 @@ impl Gun {
         let percentage_purchased = self.clip.reload();
 
         if percentage_purchased > 0.0 {
-            wallet.debit(Money::from(percentage_purchased));
+            wallet.debit(self.clip.clip_cost * percentage_purchased);
             self.reload_timer = Timer::from_seconds(self.clip.get_reload_time(), TimerMode::Once);
+            self.reloading = true;
         }
     }
 
@@ -200,6 +201,7 @@ impl Receiver {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Clip {
     max: u8,
     current: u8,
@@ -232,9 +234,9 @@ impl Clip {
         if self.max == self.current {
             0.0
         } else {
-            let difference = self.max - self.current;
+            let difference = (self.current as f32 - self.max as f32) as f32 * -1.0;
             self.current = self.max;
-            1.0 - (difference as f32 / self.max as f32)
+            difference / self.max as f32
         }
     }
 }

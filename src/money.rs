@@ -1,6 +1,6 @@
 use crate::hud::WalletDisplay;
 use bevy::prelude::*;
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
 
 pub struct MoneyPlugin;
 
@@ -119,8 +119,15 @@ impl SubAssign for Money {
     }
 }
 
+impl Mul<f32> for Money {
+    type Output = Self;
+    fn mul(self, rhs: f32) -> Self::Output {
+        Money(self.0 * rhs)
+    }
+}
+
 impl std::fmt::Display for Money {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "${}", self.0)
+        write!(f, "${:.2}", self.0)
     }
 }

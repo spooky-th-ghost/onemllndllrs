@@ -41,8 +41,8 @@ fn spawn_hud(mut commands: Commands) {
                 ..default()
             },
             style: Style {
-                left: Val::Percent(-90.0),
-                bottom: Val::Percent(-94.0),
+                bottom: Val::Percent(0.0),
+                position_type: bevy::ui::PositionType::Absolute,
                 ..default()
             },
             ..default()
@@ -72,8 +72,8 @@ fn spawn_hud(mut commands: Commands) {
                 ..default()
             },
             style: Style {
-                left: Val::Percent(-90.0),
-                bottom: Val::Percent(-10.0),
+                top: Val::Percent(0.0),
+                position_type: bevy::ui::PositionType::Absolute,
                 ..default()
             },
             ..default()
