@@ -1,3 +1,4 @@
+use crate::hud::PhoneDisplay;
 use bevy::prelude::*;
 use std::ops::{Add, AddAssign};
 
@@ -6,7 +7,7 @@ pub struct ClockPlugin;
 impl Plugin for ClockPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_clock)
-            .add_systems(Update, advance_time);
+            .add_systems(Update, (advance_time, display_time));
     }
 }
 
@@ -127,12 +128,12 @@ impl AddAssign<u8> for Minute {
 }
 
 #[derive(Resource, Default)]
-pub struct Clock {
+pub struct Phone {
     pub date: Date,
     pub timer: Timer,
 }
 
-impl Clock {
+impl Phone {
     pub fn tick(&mut self, delta: std::time::Duration) {
         self.timer.tick(delta);
         if self.timer.just_finished() {
@@ -180,16 +181,25 @@ impl std::fmt::Display for Date {
 }
 
 fn spawn_clock(mut commands: Commands) {
-    let clock = Clock {
+    let phone = Phone {
         date: Date::new(Day::Monday, 18, Minute::Half),
         timer: Timer::from_seconds(60.0, TimerMode::Repeating),
     };
 
-    println!("{}", clock.date.to_string());
+    println!("{}", phone.date.to_string());
 
-    commands.insert_resource(clock);
+    commands.insert_resource(phone);
 }
 
-fn advance_time(time: Res<Time>, mut clock: ResMut<Clock>) {
-    clock.tick(time.delta());
+pub fn advance_time(time: Res<Time>, mut phone: ResMut<Phone>) {
+    phone.tick(time.delta());
+}
+
+pub fn display_time(
+    phone: Res<Phone>,
+    mut phone_display_query: Query<&mut Text, With<PhoneDisplay>>,
+) {
+    for mut text in &mut phone_display_query {
+        text.sections[0].value = phone.date.to_string();
+    }
 }

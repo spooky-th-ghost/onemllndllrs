@@ -17,6 +17,9 @@ pub struct AmmoDisplay;
 #[derive(Component)]
 pub struct WalletDisplay;
 
+#[derive(Component)]
+pub struct PhoneDisplay;
+
 fn spawn_hud(mut commands: Commands) {
     commands
         .spawn(TextBundle {
@@ -79,4 +82,26 @@ fn spawn_hud(mut commands: Commands) {
             ..default()
         })
         .insert(WalletDisplay);
+
+    commands
+        .spawn(TextBundle {
+            text: Text {
+                sections: vec![TextSection::new(
+                    "",
+                    TextStyle {
+                        font_size: 48.0,
+                        ..default()
+                    },
+                )],
+                alignment: TextAlignment::Center,
+                ..default()
+            },
+            style: Style {
+                top: Val::Percent(5.0),
+                position_type: bevy::ui::PositionType::Absolute,
+                ..default()
+            },
+            ..default()
+        })
+        .insert(PhoneDisplay);
 }
