@@ -6,8 +6,11 @@ pub struct ClockPlugin;
 
 impl Plugin for ClockPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_clock)
-            .add_systems(Update, (advance_time, display_time));
+        app.add_systems(OnEnter(crate::GameState::RunAndGun), spawn_clock)
+            .add_systems(
+                Update,
+                (advance_time, display_time).run_if(in_state(crate::GameState::RunAndGun)),
+            );
     }
 }
 

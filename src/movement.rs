@@ -17,7 +17,7 @@ impl Plugin for MovementPlugin {
             Update,
             PlayerSet::Movement.run_if(in_state(GameState::RunAndGun)),
         )
-        .add_systems(Startup, spawn_player)
+        .add_systems(OnEnter(crate::GameState::RunAndGun), spawn_player)
         .add_systems(
             Update,
             (
@@ -118,10 +118,8 @@ fn spawn_player(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Capsule::default())),
-            material: materials.add(Color::MIDNIGHT_BLUE.into()),
-            transform: Transform::from_xyz(0.0, 10.0, 0.0),
+        .spawn(TransformBundle {
+            local: Transform::from_xyz(0.0, 10.0, 0.0),
             ..default()
         })
         .insert(RigidBody::Dynamic)

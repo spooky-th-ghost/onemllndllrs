@@ -8,7 +8,10 @@ impl Plugin for MoneyPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Debts::default())
             .insert_resource(Wallet::default())
-            .add_systems(Update, wallet_tracking);
+            .add_systems(
+                Update,
+                wallet_tracking.run_if(in_state(crate::GameState::RunAndGun)),
+            );
     }
 }
 

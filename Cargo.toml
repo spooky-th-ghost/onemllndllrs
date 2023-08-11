@@ -17,3 +17,4 @@ leafwing-input-manager = "0.10.0"
 regex = "1.9.1"
 bevy_gltf_components = { git="https://github.com/kaosat-dev/Blender_bevy_components_worklflow.git" }
 rand = "0.8.5"
+bevy_asset_loader = {version="0.17.0", features=["3d"]}

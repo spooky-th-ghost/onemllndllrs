@@ -11,7 +11,7 @@ impl Plugin for PlayerCameraPlugin {
                 Update,
                 PlayerSet::Camera.run_if(in_state(GameState::RunAndGun)),
             )
-            .add_systems(Startup, spawn_camera)
+            .add_systems(OnEnter(crate::GameState::RunAndGun), spawn_camera)
             .add_systems(
                 Update,
                 (
@@ -22,7 +22,8 @@ impl Plugin for PlayerCameraPlugin {
                     move_first_person_gun,
                     aim_down_sights,
                     update_camera_focus,
-                ),
+                )
+                    .run_if(in_state(crate::GameState::RunAndGun)),
             );
     }
 }
@@ -134,48 +135,49 @@ fn read_rotation_inputs_primary(
     player_query: Query<&ActionState<PlayerAction>>,
     time: Res<Time>,
 ) {
-    let mut camera = camera_query.single_mut();
-    let action = player_query.single();
+    if let Ok(mut camera) = camera_query.get_single_mut() {
+        let action = player_query.single();
 
-    if action.pressed(PlayerAction::Pan) {
-        let camera_pan_vector = action.axis_pair(PlayerAction::Pan).unwrap();
+        if action.pressed(PlayerAction::Pan) {
+            let camera_pan_vector = action.axis_pair(PlayerAction::Pan).unwrap();
 
-        let y_rot_change = if camera_pan_vector.x() != 0.0 {
-            15.0 * camera_pan_vector.x() * time.delta_seconds()
-        } else {
-            0.0
-        };
-        let x_rot_change = if camera_pan_vector.y() != 0.0 {
-            15.0 * camera_pan_vector.y() * time.delta_seconds()
-        } else {
-            0.0
-        };
-        if x_rot_change != 0.0 {
-            camera.adjust_x_angle(-x_rot_change);
+            let y_rot_change = if camera_pan_vector.x() != 0.0 {
+                15.0 * camera_pan_vector.x() * time.delta_seconds()
+            } else {
+                0.0
+            };
+            let x_rot_change = if camera_pan_vector.y() != 0.0 {
+                15.0 * camera_pan_vector.y() * time.delta_seconds()
+            } else {
+                0.0
+            };
+            if x_rot_change != 0.0 {
+                camera.adjust_x_angle(-x_rot_change);
+            }
+            if y_rot_change != 0.0 {
+                camera.adjust_y_angle(-y_rot_change);
+            }
         }
-        if y_rot_change != 0.0 {
-            camera.adjust_y_angle(-y_rot_change);
-        }
-    }
 
-    if action.pressed(PlayerAction::PanGamepad) {
-        let camera_pan_vector = action.axis_pair(PlayerAction::PanGamepad).unwrap();
+        if action.pressed(PlayerAction::PanGamepad) {
+            let camera_pan_vector = action.axis_pair(PlayerAction::PanGamepad).unwrap();
 
-        let y_rot_change = if camera_pan_vector.x() != 0.0 {
-            180.0 * camera_pan_vector.x() * time.delta_seconds()
-        } else {
-            0.0
-        };
-        let x_rot_change = if camera_pan_vector.y() != 0.0 {
-            90.0 * camera_pan_vector.y() * time.delta_seconds()
-        } else {
-            0.0
-        };
-        if x_rot_change != 0.0 {
-            camera.adjust_x_angle(x_rot_change);
-        }
-        if y_rot_change != 0.0 {
-            camera.adjust_y_angle(-y_rot_change);
+            let y_rot_change = if camera_pan_vector.x() != 0.0 {
+                180.0 * camera_pan_vector.x() * time.delta_seconds()
+            } else {
+                0.0
+            };
+            let x_rot_change = if camera_pan_vector.y() != 0.0 {
+                90.0 * camera_pan_vector.y() * time.delta_seconds()
+            } else {
+                0.0
+            };
+            if x_rot_change != 0.0 {
+                camera.adjust_x_angle(x_rot_change);
+            }
+            if y_rot_change != 0.0 {
+                camera.adjust_y_angle(-y_rot_change);
+            }
         }
     }
 }
@@ -184,52 +186,53 @@ fn target_player(
     mut camera_query: Query<&mut PrimaryCamera, Without<Player>>,
     player_query: Query<&Transform, With<Player>>,
 ) {
-    let mut camera = camera_query.single_mut();
-    let player_transform = player_query.single();
-
-    camera.target = player_transform.translation;
+    if let Ok(mut camera) = camera_query.get_single_mut() {
+        let player_transform = player_query.single();
+        camera.target = player_transform.translation;
+    }
 }
 
 fn position_and_rotate_camera(
     time: Res<Time>,
     mut camera_query: Query<(&mut Transform, &PrimaryCamera)>,
 ) {
-    let (mut transform, camera) = camera_query.single_mut();
-    let mut starting_transform = Transform::from_translation(camera.target);
-    let x_angle = camera.x_angle.to_radians();
-    let y_angle = camera.y_angle.to_radians();
+    if let Ok((mut transform, camera)) = camera_query.get_single_mut() {
+        let mut starting_transform = Transform::from_translation(camera.target);
+        let x_angle = camera.x_angle.to_radians();
+        let y_angle = camera.y_angle.to_radians();
 
-    starting_transform.rotate_y(y_angle);
+        starting_transform.rotate_y(y_angle);
 
-    let forward = starting_transform.forward().normalize();
-    let right = starting_transform.right().normalize();
+        let forward = starting_transform.forward().normalize();
+        let right = starting_transform.right().normalize();
 
-    let desired_position = match camera.perspective {
-        CameraPerspective::ThirdPerson => {
-            starting_transform.translation
-                + (forward * camera.offset.z)
-                + (right * camera.offset.x)
-                + (Vec3::Y * camera.offset.y)
-        }
-        CameraPerspective::FirstPerson => {
-            starting_transform.translation + (Vec3::Y * camera.offset.y)
-        }
-    };
+        let desired_position = match camera.perspective {
+            CameraPerspective::ThirdPerson => {
+                starting_transform.translation
+                    + (forward * camera.offset.z)
+                    + (right * camera.offset.x)
+                    + (Vec3::Y * camera.offset.y)
+            }
+            CameraPerspective::FirstPerson => {
+                starting_transform.translation + (Vec3::Y * camera.offset.y)
+            }
+        };
 
-    let mut desired_rotatation = Transform::default();
+        let mut desired_rotatation = Transform::default();
 
-    desired_rotatation.rotate_x(x_angle);
-    desired_rotatation.rotate_y(y_angle);
+        desired_rotatation.rotate_x(x_angle);
+        desired_rotatation.rotate_y(y_angle);
 
-    let slerp_rotation = transform
-        .rotation
-        .slerp(desired_rotatation.rotation, time.delta_seconds() * 20.0);
-    let lerp_position = transform
-        .translation
-        .lerp(desired_position, time.delta_seconds() * 20.0);
+        let slerp_rotation = transform
+            .rotation
+            .slerp(desired_rotatation.rotation, time.delta_seconds() * 20.0);
+        let lerp_position = transform
+            .translation
+            .lerp(desired_position, time.delta_seconds() * 20.0);
 
-    transform.translation = lerp_position;
-    transform.rotation = slerp_rotation;
+        transform.translation = lerp_position;
+        transform.rotation = slerp_rotation;
+    }
 }
 
 #[derive(Component, Default)]
@@ -247,32 +250,35 @@ fn move_first_person_gun(
     camera_query: Query<&Transform, With<PrimaryCamera>>,
     mut gun_query: Query<(&mut Transform, &FirstPersonGun), Without<PrimaryCamera>>,
 ) {
-    let camera_transform = camera_query.single();
-    let (mut gun_transform, gun) = gun_query.single_mut();
+    if let Ok(camera_transform) = camera_query.get_single() {
+        let (mut gun_transform, gun) = gun_query.single_mut();
 
-    let desired_translation = match gun.0 {
-        AimMode::Hip => {
-            let frequency = 2.5;
-            let phase = 0.0;
+        let desired_translation = match gun.0 {
+            AimMode::Hip => {
+                let frequency = 2.5;
+                let phase = 0.0;
 
-            let y_offset = (-0.3 + ((time.elapsed_seconds() * frequency + phase).sin()) * 0.025)
-                * camera_transform.up();
+                let y_offset = (-0.3
+                    + ((time.elapsed_seconds() * frequency + phase).sin()) * 0.025)
+                    * camera_transform.up();
 
-            let offset =
-                (0.35 * camera_transform.right()) + y_offset + (0.9 * camera_transform.forward());
+                let offset = (0.35 * camera_transform.right())
+                    + y_offset
+                    + (0.9 * camera_transform.forward());
 
-            camera_transform.translation + offset
-        }
-        AimMode::Sights => {
-            let offset = (camera_transform.forward() * 0.5) + (camera_transform.up() * -0.25);
-            camera_transform.translation + offset
-        }
-    };
+                camera_transform.translation + offset
+            }
+            AimMode::Sights => {
+                let offset = (camera_transform.forward() * 0.5) + (camera_transform.up() * -0.25);
+                camera_transform.translation + offset
+            }
+        };
 
-    gun_transform.translation = gun_transform
-        .translation
-        .lerp(desired_translation, 50.0 * time.delta_seconds());
-    gun_transform.rotation = camera_transform.rotation;
+        gun_transform.translation = gun_transform
+            .translation
+            .lerp(desired_translation, 50.0 * time.delta_seconds());
+        gun_transform.rotation = camera_transform.rotation;
+    }
 }
 
 fn aim_down_sights(
@@ -322,6 +328,7 @@ fn spawn_camera(mut commands: Commands, assets: Res<AssetServer>) {
             ..default()
         })
         .insert(PrimaryCamera::default());
+
     commands
         .spawn(SceneBundle {
             scene: assets.load("gun.glb#Scene0"),

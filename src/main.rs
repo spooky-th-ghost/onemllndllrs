@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_asset_loader::prelude::*;
 use bevy_gltf_components::ComponentsFromGltfPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
@@ -30,12 +31,15 @@ pub mod audio;
 
 pub mod hud;
 
+pub mod phone;
+
 pub mod shooting;
 
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum GameState {
-    MainMenu,
     #[default]
+    Loading,
+    MainMenu,
     RunAndGun,
 }
 
@@ -46,15 +50,19 @@ pub enum PlayerSet {
     Combat,
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, AssetCollection)]
 pub struct AssetCache {
-    pub check_texture: Handle<Image>,
-    pub check_material: Handle<StandardMaterial>,
+    #[asset(path = "check_texture.png", standard_material)]
+    check_material: Handle<StandardMaterial>,
 }
 
 fn main() {
     App::new()
         .add_state::<GameState>()
+        .add_loading_state(
+            LoadingState::new(GameState::Loading).continue_to_state(GameState::RunAndGun),
+        )
+        .add_collection_to_loading_state::<_, AssetCache>(GameState::Loading)
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
@@ -65,8 +73,13 @@ fn main() {
             gravity: Vec3::Y * -30.0,
             ..default()
         })
-        .add_systems(Startup, setup)
-        .add_systems(Update, prep_colliders.run_if(should_prep_colliders))
+        .add_systems(OnEnter(GameState::RunAndGun), setup)
+        .add_systems(
+            Update,
+            prep_colliders
+                .run_if(should_prep_colliders)
+                .run_if(in_state(GameState::RunAndGun)),
+        )
         .add_plugins((
             hud::HudPlugin,
             clock::ClockPlugin,
@@ -77,6 +90,7 @@ fn main() {
             shooting::ShootingPlugin,
             audio::AudioPlugin,
             money::MoneyPlugin,
+            phone::PhonePlugin,
         ))
         .run();
 }
@@ -84,20 +98,14 @@ fn main() {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_cache: Res<AssetCache>,
     assets: Res<AssetServer>,
 ) {
-    let check_texture = assets.load("check_texture.png");
-    let check_material = materials.add(StandardMaterial {
-        base_color_texture: Some(check_texture.clone()),
-        ..default()
-    });
-
     // Ground
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Box::new(10.0, 0.5, 10.0))),
-            material: check_material.clone(),
+            material: asset_cache.check_material.clone(),
             transform: Transform::from_xyz(0.0, -0.5, 0.0),
             ..default()
         })
@@ -107,7 +115,7 @@ fn setup(
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
-            material: check_material.clone(),
+            material: asset_cache.check_material.clone(),
             transform: Transform::from_xyz(3.0, 2.0, 3.0),
             ..default()
         })
@@ -117,7 +125,7 @@ fn setup(
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
-            material: check_material.clone(),
+            material: asset_cache.check_material.clone(),
             transform: Transform::from_xyz(3.0, 3.5, 3.0),
             ..default()
         })
@@ -127,7 +135,7 @@ fn setup(
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
-            material: check_material.clone(),
+            material: asset_cache.check_material.clone(),
             transform: Transform::from_xyz(3.0, 5.0, 3.0),
             ..default()
         })
@@ -139,11 +147,7 @@ fn setup(
     commands.spawn(SceneBundle {
         scene: assets.load("blocks.glb#Scene0"),
         transform: Transform::from_xyz(0.0, 0.0, -5.0),
-        ..Default::default()
-    });
-    commands.insert_resource(AssetCache {
-        check_texture,
-        check_material,
+        ..default()
     });
 }
 

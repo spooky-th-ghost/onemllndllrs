@@ -5,7 +5,7 @@ pub struct UserSettingsPlugin;
 impl Plugin for UserSettingsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(DisplaySettings::default())
-            .add_startup_system(configure_window);
+            .add_systems(Startup, configure_window);
     }
 }
 
