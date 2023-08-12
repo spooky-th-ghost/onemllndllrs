@@ -72,10 +72,9 @@ fn setup_phone(
 
     //Phone Screen Camera
     commands.spawn((
-        Camera3dBundle {
-            camera_3d: Camera3d {
-                clear_color: ClearColorConfig::Custom(Color::RED),
-                ..default()
+        Camera2dBundle {
+            camera_2d: Camera2d {
+                clear_color: ClearColorConfig::Custom(Color::SEA_GREEN),
             },
             camera: Camera {
                 // Render before every other camera
@@ -83,6 +82,7 @@ fn setup_phone(
                 target: RenderTarget::Image(image_handle.clone()),
                 ..default()
             },
+            transform: Transform::from_xyz(0.0, 0.0, -4.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         },
         RenderLayers::layer(2),

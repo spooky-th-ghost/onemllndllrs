@@ -53,7 +53,7 @@ fn spawn_hud(mut commands: Commands) {
         .insert(AmmoDisplay);
 
     commands
-        .spawn(TextBundle {
+        .spawn(Text2dBundle {
             text: Text {
                 sections: vec![
                     TextSection::new(
@@ -74,18 +74,18 @@ fn spawn_hud(mut commands: Commands) {
                 alignment: TextAlignment::Center,
                 ..default()
             },
-            style: Style {
-                top: Val::Percent(0.0),
-                position_type: bevy::ui::PositionType::Absolute,
-                ..default()
-            },
+            // style: Style {
+            //     top: Val::Percent(0.0),
+            //     position_type: bevy::ui::PositionType::Absolute,
+            //     ..default()
+            // },
             ..default()
         })
-        .insert(WalletDisplay)
-        .insert(RenderLayers::layer(2));
+        .insert(WalletDisplay);
+    // .insert(RenderLayers::layer(2));
 
     commands
-        .spawn(TextBundle {
+        .spawn(Text2dBundle {
             text: Text {
                 sections: vec![TextSection::new(
                     "",
@@ -97,13 +97,13 @@ fn spawn_hud(mut commands: Commands) {
                 alignment: TextAlignment::Center,
                 ..default()
             },
-            style: Style {
-                top: Val::Percent(5.0),
-                position_type: bevy::ui::PositionType::Absolute,
-                ..default()
-            },
+            // style: Style {
+            //     top: Val::Percent(5.0),
+            //     position_type: bevy::ui::PositionType::Absolute,
+            //     ..default()
+            // },
             ..default()
         })
-        .insert(PhoneDisplay)
-        .insert(RenderLayers::layer(2));
+        .insert(PhoneDisplay);
+    // .insert(RenderLayers::layer(2));
 }
