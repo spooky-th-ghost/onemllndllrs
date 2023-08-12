@@ -53,7 +53,10 @@ pub enum PlayerSet {
 #[derive(Resource, AssetCollection)]
 pub struct AssetCache {
     #[asset(path = "check_texture.png", standard_material)]
-    check_material: Handle<StandardMaterial>,
+    pub check_material: Handle<StandardMaterial>,
+    #[asset(path = "phone.glb#Scene0")]
+    pub phone: Handle<Scene>,
+    pub screen_material: Handle<StandardMaterial>,
 }
 
 fn main() {

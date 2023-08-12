@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::RenderLayers};
 
 pub struct HudPlugin;
 
@@ -81,7 +81,8 @@ fn spawn_hud(mut commands: Commands) {
             },
             ..default()
         })
-        .insert(WalletDisplay);
+        .insert(WalletDisplay)
+        .insert(RenderLayers::layer(2));
 
     commands
         .spawn(TextBundle {
@@ -103,5 +104,6 @@ fn spawn_hud(mut commands: Commands) {
             },
             ..default()
         })
-        .insert(PhoneDisplay);
+        .insert(PhoneDisplay)
+        .insert(RenderLayers::layer(2));
 }
