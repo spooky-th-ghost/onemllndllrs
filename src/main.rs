@@ -104,6 +104,12 @@ fn setup(
     asset_cache: Res<AssetCache>,
     assets: Res<AssetServer>,
 ) {
+    // Ambient Light
+    commands.insert_resource(AmbientLight {
+        color: Color::WHITE,
+        brightness: 0.2,
+    });
+
     // Ground
     commands
         .spawn(PbrBundle {

@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::view::RenderLayers};
+use bevy::prelude::*;
 
 pub struct HudPlugin;
 
@@ -51,48 +51,4 @@ fn spawn_hud(mut commands: Commands) {
             ..default()
         })
         .insert(AmmoDisplay);
-
-    commands
-        .spawn(Text2dBundle {
-            text: Text {
-                sections: vec![
-                    TextSection::new(
-                        "Dosh: ",
-                        TextStyle {
-                            font_size: 48.0,
-                            ..default()
-                        },
-                    ),
-                    TextSection::new(
-                        "$0.00",
-                        TextStyle {
-                            font_size: 48.0,
-                            ..default()
-                        },
-                    ),
-                ],
-                alignment: TextAlignment::Center,
-                ..default()
-            },
-            transform: Transform::from_xyz(0.0, 41.0, 0.0),
-            ..default()
-        })
-        .insert(WalletDisplay);
-
-    commands
-        .spawn(Text2dBundle {
-            text: Text {
-                sections: vec![TextSection::new(
-                    "",
-                    TextStyle {
-                        font_size: 48.0,
-                        ..default()
-                    },
-                )],
-                alignment: TextAlignment::Center,
-                ..default()
-            },
-            ..default()
-        })
-        .insert(PhoneDisplay);
 }

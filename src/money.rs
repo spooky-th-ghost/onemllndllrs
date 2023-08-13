@@ -59,6 +59,51 @@ impl Default for Debts {
     }
 }
 
+#[derive(Component)]
+pub struct PopUp;
+
+#[derive(Bundle)]
+pub struct PopupBundle {
+    text_2d_bundle: Text2dBundle,
+    sprite: Sprite,
+    pop_up: PopUp,
+}
+
+impl PopupBundle {
+    pub fn new(amount: f32) -> Self {
+        let popup_color = if amount < 0.0 {
+            Color::RED
+        } else {
+            Color::GREEN
+        };
+
+        PopupBundle {
+            sprite: Sprite {
+                color: popup_color,
+                custom_size: Some(Vec2::new(100.0, 100.0)),
+                ..default()
+            },
+            text_2d_bundle: Text2dBundle {
+                text: Text {
+                    sections: vec![TextSection {
+                        value: amount.to_string(),
+                        style: TextStyle {
+                            font_size: 30.0,
+                            color: Color::WHITE,
+                            ..default()
+                        },
+                    }],
+                    alignment: TextAlignment::Center,
+                    //TODO: Spawn at a randomized x location around the money display
+                    ..default()
+                },
+                ..default()
+            },
+            pop_up: PopUp,
+        }
+    }
+}
+
 #[derive(Resource)]
 pub struct Wallet {
     funds: Money,

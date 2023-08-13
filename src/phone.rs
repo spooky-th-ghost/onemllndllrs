@@ -10,6 +10,8 @@ use bevy::{
     },
 };
 
+use crate::hud::{PhoneDisplay, WalletDisplay};
+
 pub struct PhonePlugin;
 
 impl Plugin for PhonePlugin {
@@ -133,6 +135,60 @@ fn setup_phone(
             ..default()
         })
         .insert(RenderLayers::layer(1));
+
+    // Phone UI Elements
+    commands.spawn(SpriteBundle {
+        sprite: Sprite {
+            color: Color::RED,
+            custom_size: Some(Vec2::new(800.0, 50.0)),
+            ..default()
+        },
+        ..default()
+    });
+
+    commands
+        .spawn(Text2dBundle {
+            text: Text {
+                sections: vec![
+                    TextSection::new(
+                        "Dosh: ",
+                        TextStyle {
+                            font_size: 48.0,
+                            ..default()
+                        },
+                    ),
+                    TextSection::new(
+                        "$0.00",
+                        TextStyle {
+                            font_size: 48.0,
+                            ..default()
+                        },
+                    ),
+                ],
+                alignment: TextAlignment::Center,
+                ..default()
+            },
+            transform: Transform::from_xyz(0.0, 41.0, 0.0),
+            ..default()
+        })
+        .insert(WalletDisplay);
+
+    commands
+        .spawn(Text2dBundle {
+            text: Text {
+                sections: vec![TextSection::new(
+                    "",
+                    TextStyle {
+                        font_size: 48.0,
+                        ..default()
+                    },
+                )],
+                alignment: TextAlignment::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .insert(PhoneDisplay);
 }
 
 fn setup_phone_components(
