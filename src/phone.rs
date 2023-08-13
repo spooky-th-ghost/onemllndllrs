@@ -137,14 +137,17 @@ fn setup_phone(
         .insert(RenderLayers::layer(1));
 
     // Phone UI Elements
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: Color::RED,
-            custom_size: Some(Vec2::new(800.0, 50.0)),
-            ..default()
-        },
-        ..default()
-    });
+
+    // Banner
+    // commands.spawn(SpriteBundle {
+    //     sprite: Sprite {
+    //         color: Color::RED,
+    //         custom_size: Some(Vec2::new(800.0, 50.0)),
+    //         ..default()
+    //     },
+    //     transform: Transform::from_xyz(0.0, 0.0, 2.0),
+    //     ..default()
+    // });
 
     commands
         .spawn(Text2dBundle {
@@ -168,7 +171,7 @@ fn setup_phone(
                 alignment: TextAlignment::Center,
                 ..default()
             },
-            transform: Transform::from_xyz(0.0, 41.0, 0.0),
+            transform: Transform::from_xyz(0.0, -1.2, 0.0),
             ..default()
         })
         .insert(WalletDisplay);
@@ -186,6 +189,7 @@ fn setup_phone(
                 alignment: TextAlignment::Center,
                 ..default()
             },
+            transform: Transform::from_xyz(0.0, 43.5, 0.0),
             ..default()
         })
         .insert(PhoneDisplay);

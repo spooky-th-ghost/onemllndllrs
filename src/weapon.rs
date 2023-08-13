@@ -111,14 +111,16 @@ impl Gun {
         self.clip.current
     }
 
-    pub fn reload(&mut self, mut wallet: ResMut<Wallet>) {
+    pub fn reload(&mut self, mut wallet: ResMut<Wallet>) -> Option<crate::money::PopupBundle> {
         let percentage_purchased = self.clip.reload();
 
         if percentage_purchased > 0.0 {
-            wallet.debit(self.clip.clip_cost * percentage_purchased);
+            let popup = wallet.debit(self.clip.clip_cost * percentage_purchased);
             self.reload_timer = Timer::from_seconds(self.clip.get_reload_time(), TimerMode::Once);
             self.reloading = true;
+            return Some(popup);
         }
+        None
     }
 
     pub fn is_reloading(&self) -> bool {

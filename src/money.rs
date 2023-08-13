@@ -10,7 +10,7 @@ impl Plugin for MoneyPlugin {
             .insert_resource(Wallet::default())
             .add_systems(
                 Update,
-                wallet_tracking.run_if(in_state(crate::GameState::RunAndGun)),
+                (wallet_tracking, pop_up_movement).run_if(in_state(crate::GameState::RunAndGun)),
             );
     }
 }
@@ -21,6 +21,26 @@ fn wallet_tracking(
 ) {
     for mut text in &mut wallet_display_query {
         text.sections[1].value = wallet.funds.to_string();
+    }
+}
+
+fn pop_up_movement(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut pop_up_query: Query<(Entity, &mut PopUp, &mut Transform)>,
+) {
+    for (entity, mut popup, mut transform) in &mut pop_up_query {
+        let frequency = 2.5;
+        let phase = 1.0;
+
+        let x_offset =
+            popup.starting_x + ((time.elapsed_seconds() * frequency + phase).sin()) * 0.025;
+        transform.translation -= Vec3::Y * 30.0 * time.delta_seconds();
+        transform.translation.x = x_offset;
+        popup.tick(time.delta());
+        if popup.finished() {
+            commands.entity(entity).despawn_recursive();
+        }
     }
 }
 
@@ -60,7 +80,27 @@ impl Default for Debts {
 }
 
 #[derive(Component)]
-pub struct PopUp;
+pub struct PopUp {
+    timer: Timer,
+    starting_x: f32,
+}
+
+impl PopUp {
+    pub fn new(starting_x: f32) -> Self {
+        PopUp {
+            timer: Timer::from_seconds(1.0, TimerMode::Once),
+            starting_x,
+        }
+    }
+
+    pub fn tick(&mut self, delta: std::time::Duration) {
+        self.timer.tick(delta);
+    }
+
+    pub fn finished(&self) -> bool {
+        self.timer.finished()
+    }
+}
 
 #[derive(Bundle)]
 pub struct PopupBundle {
@@ -77,6 +117,16 @@ impl PopupBundle {
             Color::GREEN
         };
 
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let x_pos = rng.gen_range(-200.0..200.0);
+
+        let display_text = if amount < 0.0 {
+            format!("{:.2}", amount)
+        } else {
+            format!("+{:.2}", amount)
+        };
+
         PopupBundle {
             sprite: Sprite {
                 color: popup_color,
@@ -86,7 +136,7 @@ impl PopupBundle {
             text_2d_bundle: Text2dBundle {
                 text: Text {
                     sections: vec![TextSection {
-                        value: amount.to_string(),
+                        value: display_text,
                         style: TextStyle {
                             font_size: 30.0,
                             color: Color::WHITE,
@@ -94,12 +144,12 @@ impl PopupBundle {
                         },
                     }],
                     alignment: TextAlignment::Center,
-                    //TODO: Spawn at a randomized x location around the money display
                     ..default()
                 },
+                transform: Transform::from_xyz(x_pos, -10.0, 0.0),
                 ..default()
             },
-            pop_up: PopUp,
+            pop_up: PopUp::new(x_pos),
         }
     }
 }
@@ -114,12 +164,14 @@ impl Wallet {
         self.funds
     }
 
-    pub fn debit(&mut self, amount: Money) {
+    pub fn debit(&mut self, amount: Money) -> PopupBundle {
         self.funds -= amount;
+        PopupBundle::new(-amount.0)
     }
 
-    pub fn credit(&mut self, amount: Money) {
+    pub fn credit(&mut self, amount: Money) -> PopupBundle {
         self.funds += amount;
+        PopupBundle::new(amount.0)
     }
 }
 

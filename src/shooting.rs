@@ -65,13 +65,17 @@ fn rotate_clip(
 }
 
 fn reload_gun(
+    mut commands: Commands,
     mut belt: ResMut<Belt>,
     mut wallet: ResMut<Wallet>,
     player_query: Query<&ActionState<PlayerAction>>,
 ) {
     if let Ok(action) = player_query.get_single() {
         if !belt.gun.is_reloading() && action.just_pressed(PlayerAction::Reload) {
-            belt.gun.reload(wallet);
+            let pop_up_bundle = belt.gun.reload(wallet);
+            if let Some(pop_up) = pop_up_bundle {
+                commands.spawn(pop_up);
+            }
         }
     }
 }
