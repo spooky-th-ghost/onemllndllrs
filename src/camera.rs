@@ -1,5 +1,5 @@
 use crate::{input::PlayerAction, movement::Player, GameState, PlayerSet};
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::RenderLayers};
 use leafwing_input_manager::prelude::*;
 
 pub struct PlayerCameraPlugin;
@@ -327,7 +327,8 @@ fn spawn_camera(mut commands: Commands, assets: Res<AssetServer>) {
             transform: Transform::from_xyz(0.0, 5.0, -5.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        .insert(PrimaryCamera::default());
+        .insert(PrimaryCamera::default())
+        .insert(RenderLayers::layer(0));
 
     commands
         .spawn(SceneBundle {

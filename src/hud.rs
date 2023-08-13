@@ -74,15 +74,10 @@ fn spawn_hud(mut commands: Commands) {
                 alignment: TextAlignment::Center,
                 ..default()
             },
-            // style: Style {
-            //     top: Val::Percent(0.0),
-            //     position_type: bevy::ui::PositionType::Absolute,
-            //     ..default()
-            // },
+            transform: Transform::from_xyz(0.0, 41.0, 0.0),
             ..default()
         })
         .insert(WalletDisplay);
-    // .insert(RenderLayers::layer(2));
 
     commands
         .spawn(Text2dBundle {
@@ -97,13 +92,7 @@ fn spawn_hud(mut commands: Commands) {
                 alignment: TextAlignment::Center,
                 ..default()
             },
-            // style: Style {
-            //     top: Val::Percent(5.0),
-            //     position_type: bevy::ui::PositionType::Absolute,
-            //     ..default()
-            // },
             ..default()
         })
         .insert(PhoneDisplay);
-    // .insert(RenderLayers::layer(2));
 }

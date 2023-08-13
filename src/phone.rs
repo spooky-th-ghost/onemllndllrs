@@ -43,8 +43,8 @@ fn setup_phone(
     mut asset_cache: ResMut<crate::AssetCache>,
 ) {
     let size = Extent3d {
-        width: 128,
-        height: 64,
+        width: 512,
+        height: 256,
         ..default()
     };
 
@@ -77,15 +77,12 @@ fn setup_phone(
                 clear_color: ClearColorConfig::Custom(Color::SEA_GREEN),
             },
             camera: Camera {
-                // Render before every other camera
-                order: -2,
+                order: 4,
                 target: RenderTarget::Image(image_handle.clone()),
                 ..default()
             },
-            transform: Transform::from_xyz(0.0, 0.0, -4.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         },
-        RenderLayers::layer(2),
         PhoneScreen,
     ));
 
@@ -107,8 +104,7 @@ fn setup_phone(
                 ..default()
             },
             camera: Camera {
-                // Render after the screen camera, and before the main pass
-                order: 1,
+                order: 3,
                 ..default()
             },
             transform: Transform::from_xyz(0.0, 0.0, -4.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -126,10 +122,17 @@ fn setup_phone(
     });
 
     // Light: They are currently shared between passes
-    commands.spawn(PointLightBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
-        ..default()
-    });
+    commands
+        .spawn(PointLightBundle {
+            transform: Transform::from_translation(Vec3::new(2.8, 1.6, 0.8)),
+            point_light: PointLight {
+                intensity: 28.5,
+                range: 1.5,
+                ..default()
+            },
+            ..default()
+        })
+        .insert(RenderLayers::layer(1));
 }
 
 fn setup_phone_components(
