@@ -1,3 +1,4 @@
+use bevy::ecs::system::Command;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{ExternalImpulse, RapierContext, RigidBody};
 use leafwing_input_manager::prelude::*;
@@ -74,7 +75,7 @@ fn reload_gun(
         if !belt.gun.is_reloading() && action.just_pressed(PlayerAction::Reload) {
             let pop_up_bundle = belt.gun.reload(wallet);
             if let Some(pop_up) = pop_up_bundle {
-                commands.spawn(pop_up);
+                commands.add(pop_up);
             }
         }
     }

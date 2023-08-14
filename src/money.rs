@@ -1,4 +1,5 @@
 use crate::hud::WalletDisplay;
+use bevy::ecs::system::Command;
 use bevy::prelude::*;
 use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
 
@@ -30,11 +31,11 @@ fn pop_up_movement(
     mut pop_up_query: Query<(Entity, &mut PopUp, &mut Transform)>,
 ) {
     for (entity, mut popup, mut transform) in &mut pop_up_query {
-        let frequency = 2.5;
-        let phase = 1.0;
+        let frequency = 5.0;
+        let phase = 15.0;
 
         let x_offset =
-            popup.starting_x + ((time.elapsed_seconds() * frequency + phase).sin()) * 0.025;
+            popup.starting_x + ((time.elapsed_seconds() * frequency + phase).sin()) * 50.0;
         transform.translation -= Vec3::Y * 30.0 * time.delta_seconds();
         transform.translation.x = x_offset;
         popup.tick(time.delta());
@@ -88,7 +89,7 @@ pub struct PopUp {
 impl PopUp {
     pub fn new(starting_x: f32) -> Self {
         PopUp {
-            timer: Timer::from_seconds(1.0, TimerMode::Once),
+            timer: Timer::from_seconds(2.0, TimerMode::Once),
             starting_x,
         }
     }
@@ -102,16 +103,11 @@ impl PopUp {
     }
 }
 
-#[derive(Bundle)]
-pub struct PopupBundle {
-    text_2d_bundle: Text2dBundle,
-    sprite: Sprite,
-    pop_up: PopUp,
-}
+pub struct PopUpCommand(pub f32);
 
-impl PopupBundle {
-    pub fn new(amount: f32) -> Self {
-        let popup_color = if amount < 0.0 {
+impl Command for PopUpCommand {
+    fn apply(self, world: &mut World) {
+        let popup_color = if self.0 < 0.0 {
             Color::RED
         } else {
             Color::GREEN
@@ -121,19 +117,19 @@ impl PopupBundle {
         let mut rng = rand::thread_rng();
         let x_pos = rng.gen_range(-200.0..200.0);
 
-        let display_text = if amount < 0.0 {
-            format!("{:.2}", amount)
+        let display_text = if self.0 < 0.0 {
+            format!("{:.2}", self.0)
         } else {
-            format!("+{:.2}", amount)
+            format!("+{:.2}", self.0)
         };
 
-        PopupBundle {
-            sprite: Sprite {
+        world.spawn((
+            Sprite {
                 color: popup_color,
                 custom_size: Some(Vec2::new(100.0, 100.0)),
                 ..default()
             },
-            text_2d_bundle: Text2dBundle {
+            Text2dBundle {
                 text: Text {
                     sections: vec![TextSection {
                         value: display_text,
@@ -149,8 +145,8 @@ impl PopupBundle {
                 transform: Transform::from_xyz(x_pos, -10.0, 0.0),
                 ..default()
             },
-            pop_up: PopUp::new(x_pos),
-        }
+            PopUp::new(x_pos),
+        ));
     }
 }
 
@@ -164,14 +160,14 @@ impl Wallet {
         self.funds
     }
 
-    pub fn debit(&mut self, amount: Money) -> PopupBundle {
+    pub fn debit(&mut self, amount: Money) -> PopUpCommand {
         self.funds -= amount;
-        PopupBundle::new(-amount.0)
+        PopUpCommand(-amount.0)
     }
 
-    pub fn credit(&mut self, amount: Money) -> PopupBundle {
+    pub fn credit(&mut self, amount: Money) -> PopUpCommand {
         self.funds += amount;
-        PopupBundle::new(amount.0)
+        PopUpCommand(amount.0)
     }
 }
 

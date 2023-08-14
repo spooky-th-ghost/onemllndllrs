@@ -111,7 +111,7 @@ impl Gun {
         self.clip.current
     }
 
-    pub fn reload(&mut self, mut wallet: ResMut<Wallet>) -> Option<crate::money::PopupBundle> {
+    pub fn reload(&mut self, mut wallet: ResMut<Wallet>) -> Option<crate::money::PopUpCommand> {
         let percentage_purchased = self.clip.reload();
 
         if percentage_purchased > 0.0 {

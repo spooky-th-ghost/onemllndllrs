@@ -68,7 +68,7 @@ fn main() {
         .add_collection_to_loading_state::<_, AssetCache>(GameState::Loading)
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(InputManagerPlugin::<input::PlayerAction>::default())
         .add_plugins(WorldInspectorPlugin::default())
         .add_plugins(ComponentsFromGltfPlugin)
