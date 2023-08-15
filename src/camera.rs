@@ -1,5 +1,5 @@
 use crate::{input::PlayerAction, movement::Player, GameState, PlayerSet};
-use bevy::{prelude::*, render::view::RenderLayers};
+use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*, render::view::RenderLayers};
 use leafwing_input_manager::prelude::*;
 
 pub struct PlayerCameraPlugin;
@@ -325,6 +325,10 @@ fn spawn_camera(mut commands: Commands, assets: Res<AssetServer>) {
     commands
         .spawn(Camera3dBundle {
             transform: Transform::from_xyz(0.0, 5.0, -5.0).looking_at(Vec3::ZERO, Vec3::Y),
+            camera_3d: Camera3d {
+                clear_color: ClearColorConfig::Custom(Color::PURPLE),
+                ..default()
+            },
             ..default()
         })
         .insert(PrimaryCamera::default())

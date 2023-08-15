@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::*;
 use bevy_gltf_components::ComponentsFromGltfPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -56,7 +57,11 @@ pub struct AssetCache {
     pub check_material: Handle<StandardMaterial>,
     #[asset(path = "phone.glb#Scene0")]
     pub phone: Handle<Scene>,
+    #[asset(path = "stool.glb#Scene0")]
+    pub stool: Handle<Scene>,
     pub screen_material: Handle<StandardMaterial>,
+    #[asset(path = "buildings", collection(typed, mapped))]
+    pub buildings: HashMap<String, Handle<Scene>>,
 }
 
 fn main() {
@@ -158,6 +163,29 @@ fn setup(
         transform: Transform::from_xyz(0.0, 0.0, -5.0),
         ..default()
     });
+
+    //Stool
+    commands.spawn(SceneBundle {
+        scene: asset_cache.stool.clone(),
+        transform: Transform::from_xyz(1.0, 0.0, 1.0),
+        ..default()
+    });
+
+    for (key, value) in &asset_cache.buildings {
+        println!("{}", key);
+    }
+
+    // Teahouse
+    if let Some(teahouse) = asset_cache.buildings.get("buildings/teahouse.glb") {
+        println!("teahouse loaded");
+        commands
+            .spawn(SceneBundle {
+                scene: teahouse.clone(),
+                transform: Transform::from_xyz(10.0, 0.0, 0.0),
+                ..default()
+            })
+            .insert(Name::from("Teahouse"));
+    }
 }
 
 #[derive(Component)]
