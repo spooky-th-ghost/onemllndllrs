@@ -60,7 +60,7 @@ pub struct AssetCache {
     #[asset(path = "stool.glb#Scene0")]
     pub stool: Handle<Scene>,
     pub screen_material: Handle<StandardMaterial>,
-    #[asset(path = "buildings", collection(typed, mapped))]
+    #[asset(paths("buildings/teahouse.glb#Scene0"), collection(typed, mapped))]
     pub buildings: HashMap<String, Handle<Scene>>,
 }
 
@@ -171,12 +171,14 @@ fn setup(
         ..default()
     });
 
-    for (key, value) in &asset_cache.buildings {
-        println!("{}", key);
-    }
-
     // Teahouse
-    if let Some(teahouse) = asset_cache.buildings.get("buildings/teahouse.glb") {
+    // commands
+    //     .spawn(SceneBundle {
+    //         scene: assets.load("buildings/teahouse.glb"),
+    //         ..default()
+    //     })
+    //     .insert(Name::from("Teahouse"));
+    if let Some(teahouse) = asset_cache.buildings.get("buildings/teahouse.glb#Scene0") {
         println!("teahouse loaded");
         commands
             .spawn(SceneBundle {
