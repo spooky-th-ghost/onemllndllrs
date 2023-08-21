@@ -44,6 +44,9 @@ pub enum GameState {
     RunAndGun,
 }
 
+#[derive(Component)]
+pub struct Interactable;
+
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum PlayerSet {
     Camera,
@@ -135,7 +138,8 @@ fn setup(
         })
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
         .insert(shooting::Shootable)
-        .insert(RigidBody::Dynamic);
+        .insert(RigidBody::Dynamic)
+        .insert(Interactable);
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
@@ -145,7 +149,9 @@ fn setup(
         })
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
         .insert(shooting::Shootable)
-        .insert(RigidBody::Dynamic);
+        .insert(RigidBody::Dynamic)
+        .insert(Interactable);
+
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
@@ -155,7 +161,8 @@ fn setup(
         })
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
         .insert(shooting::Shootable)
-        .insert(RigidBody::Dynamic);
+        .insert(RigidBody::Dynamic)
+        .insert(Interactable);
 
     // Scene
     commands.spawn(SceneBundle {
