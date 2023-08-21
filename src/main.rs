@@ -6,6 +6,8 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
 use leafwing_input_manager::prelude::InputManagerPlugin;
 
+pub mod interactions;
+
 pub mod camera;
 
 pub mod clock;
@@ -43,9 +45,6 @@ pub enum GameState {
     MainMenu,
     RunAndGun,
 }
-
-#[derive(Component)]
-pub struct Interactable;
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum PlayerSet {
@@ -97,6 +96,7 @@ fn main() {
             camera::PlayerCameraPlugin,
             movement::MovementPlugin,
             //dialogue::DialoguePlugin,
+            interactions::InteractionsPlugin,
             settings::UserSettingsPlugin,
             shooting::ShootingPlugin,
             audio::AudioPlugin,
@@ -139,7 +139,9 @@ fn setup(
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
         .insert(shooting::Shootable)
         .insert(RigidBody::Dynamic)
-        .insert(Interactable);
+        .insert(interactions::Interactable(
+            interactions::InteractionType::Pickup,
+        ));
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
@@ -150,7 +152,9 @@ fn setup(
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
         .insert(shooting::Shootable)
         .insert(RigidBody::Dynamic)
-        .insert(Interactable);
+        .insert(interactions::Interactable(
+            interactions::InteractionType::Pickup,
+        ));
 
     commands
         .spawn(PbrBundle {
@@ -162,7 +166,9 @@ fn setup(
         .insert(Collider::cuboid(0.5, 0.5, 0.5))
         .insert(shooting::Shootable)
         .insert(RigidBody::Dynamic)
-        .insert(Interactable);
+        .insert(interactions::Interactable(
+            interactions::InteractionType::Pickup,
+        ));
 
     // Scene
     commands.spawn(SceneBundle {
