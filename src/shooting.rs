@@ -1,4 +1,3 @@
-use bevy::ecs::system::Command;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{ExternalImpulse, RapierContext, RigidBody};
 use leafwing_input_manager::prelude::*;
@@ -90,10 +89,6 @@ pub fn send_shot_events(
     mut belt: ResMut<Belt>,
     mut shot_events: EventWriter<ShotEvent>,
 ) {
-    //TODO: Next steps
-    // 3. ammo count
-    // 4. reloading
-    // 5. money
     let action = player_query.single_mut();
 
     let shot_to_fire = match belt.get_trigger_mode() {
@@ -198,69 +193,6 @@ fn read_shot_events(
 
 #[derive(Component)]
 pub struct BulletHole;
-
-pub fn debug_shooting(
-    mut commands: Commands,
-    player_query: Query<(Entity, &ActionState<PlayerAction>), With<Player>>,
-    camera_focus: Res<CameraFocus>,
-    sound_bank: Res<SoundBank>,
-    cube_query: Query<
-        (&Transform, bevy::ecs::query::Has<ExternalImpulse>),
-        (With<RigidBody>, Without<Player>),
-    >,
-    rapier_context: Res<RapierContext>,
-) {
-    let (player_entity, action) = player_query.single();
-
-    if action.pressed(PlayerAction::Shoot) {
-        commands.spawn(sound_bank.empty_fire());
-        // commands.spawn(sound_bank.bullet_shot());
-        let ray_origin = camera_focus.origin();
-        let ray_dir = camera_focus.forward_randomized(20.0);
-        let max_toi = 100.0;
-        let solid = false;
-        let filter = bevy_rapier3d::pipeline::QueryFilter {
-            exclude_collider: Some(player_entity),
-            exclude_rigid_body: Some(player_entity),
-            ..default()
-        };
-
-        if let Some((entity, intersection)) =
-            rapier_context.cast_ray_and_get_normal(ray_origin, ray_dir, max_toi, solid, filter)
-        {
-            let (hit_transform, has_external) = cube_query.get(entity).unwrap();
-
-            let center_of_mass = hit_transform.translation;
-
-            // shot_events.send(ShotEvent {
-            //     shot_entity: entity,
-            //     shot_impulse: camera_focus.forward() * 10.0,
-            //     collision_point: intersection.point,
-            // });
-
-            let impulse = ExternalImpulse::at_point(
-                camera_focus.forward() * 10.0,
-                intersection.point,
-                center_of_mass,
-            );
-
-            if has_external {
-                commands
-                    .entity(entity)
-                    .remove::<ExternalImpulse>()
-                    .insert(impulse);
-            } else {
-                commands.entity(entity).insert(impulse);
-            }
-            commands.spawn((
-                TransformBundle::from_transform(
-                    Transform::default().with_translation(intersection.point),
-                ),
-                BulletHole,
-            ));
-        }
-    }
-}
 
 pub fn render_bulletholes(hole_query: Query<&Transform, With<BulletHole>>, mut gizmos: Gizmos) {
     for transform in &hole_query {
