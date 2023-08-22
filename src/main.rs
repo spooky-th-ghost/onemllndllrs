@@ -28,6 +28,8 @@ pub mod weapon;
 
 pub mod inventory;
 
+pub mod player;
+
 pub mod money;
 
 pub mod audio;
@@ -75,7 +77,6 @@ fn main() {
         .add_collection_to_loading_state::<_, AssetCache>(GameState::Loading)
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        // .add_plugins(RapierDebugRenderPlugin::default())
         .add_plugins(InputManagerPlugin::<input::PlayerAction>::default())
         .add_plugins(WorldInspectorPlugin::default())
         .add_plugins(ComponentsFromGltfPlugin)
@@ -97,6 +98,7 @@ fn main() {
             movement::MovementPlugin,
             //dialogue::DialoguePlugin,
             interactions::InteractionsPlugin,
+            player::PlayerPlugin,
             settings::UserSettingsPlugin,
             shooting::ShootingPlugin,
             audio::AudioPlugin,
@@ -184,15 +186,7 @@ fn setup(
         ..default()
     });
 
-    // Teahouse
-    // commands
-    //     .spawn(SceneBundle {
-    //         scene: assets.load("buildings/teahouse.glb"),
-    //         ..default()
-    //     })
-    //     .insert(Name::from("Teahouse"));
     if let Some(teahouse) = asset_cache.buildings.get("buildings/teahouse.glb#Scene0") {
-        println!("teahouse loaded");
         commands
             .spawn(SceneBundle {
                 scene: teahouse.clone(),
@@ -206,6 +200,7 @@ fn setup(
 #[derive(Component)]
 pub struct ColliderPrepped;
 
+//TODO: Remove the 2 following systems and fully integrate the blender workflow
 fn should_prep_colliders(
     cube_query: Query<&Name, Without<ColliderPrepped>>,
     clip_query: Query<&Name, Without<shooting::ClipComponent>>,

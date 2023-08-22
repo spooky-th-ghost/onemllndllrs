@@ -8,7 +8,7 @@ use crate::hud::AmmoDisplay;
 use crate::inventory::Belt;
 use crate::money::Wallet;
 use crate::weapon::{FireResult, ShotEvent, TriggerMode};
-use crate::{input::PlayerAction, movement::Player, GameState, PlayerSet};
+use crate::{input::PlayerAction, player::Player, GameState, PlayerSet};
 
 pub struct ShootingPlugin;
 

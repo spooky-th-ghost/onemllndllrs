@@ -9,6 +9,12 @@ pub enum InteractionType {
     Pickup,
 }
 
+#[derive(Event)]
+pub struct PickupEvent {
+    pub object_entity: Entity,
+    pub holder_entity: Entity,
+}
+
 impl std::fmt::Display for InteractionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -28,18 +34,19 @@ impl Plugin for InteractionsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            show_interaction_popup.run_if(in_state(crate::GameState::RunAndGun)),
+            set_interaction_state.run_if(in_state(crate::GameState::RunAndGun)),
         );
     }
 }
 
-fn show_interaction_popup(
+fn set_interaction_state(
     mut interaction_display_query: Query<
         (&mut Visibility, &mut Text),
         With<crate::hud::InteractDisplay>,
     >,
-    player_query: Query<Entity, With<crate::movement::Player>>,
+    player_query: Query<Entity, With<crate::player::Player>>,
     interactable_query: Query<&Interactable>,
+    mut player_stats: ResMut<crate::player::PlayerStats>,
     camera_focus: Res<crate::camera::CameraFocus>,
     rapier_context: Res<RapierContext>,
 ) {
@@ -61,11 +68,14 @@ fn show_interaction_popup(
                 if let Ok(inteactable) = interactable_query.get(entity) {
                     *visibility = Visibility::Visible;
                     text.sections[1].value = inteactable.0.to_string();
+                    player_stats.set_interacted(entity);
                 } else {
                     *visibility = Visibility::Hidden;
+                    player_stats.clear_interacted();
                 }
             } else {
                 *visibility = Visibility::Hidden;
+                player_stats.clear_interacted();
             }
         }
     }

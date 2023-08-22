@@ -1,4 +1,4 @@
-use crate::{input::PlayerAction, movement::Player, GameState, PlayerSet};
+use crate::{input::PlayerAction, player::Player, GameState, PlayerSet};
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*, render::view::RenderLayers};
 use leafwing_input_manager::prelude::*;
 
