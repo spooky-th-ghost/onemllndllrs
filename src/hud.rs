@@ -85,4 +85,17 @@ fn spawn_hud(mut commands: Commands) {
             ..default()
         })
         .insert(AmmoDisplay);
+
+    commands.spawn(Camera3dBundle {
+        camera_3d: Camera3d {
+            clear_color: bevy::core_pipeline::clear_color::ClearColorConfig::None,
+            ..default()
+        },
+        camera: Camera {
+            order: 4,
+            ..default()
+        },
+        transform: Transform::from_xyz(0., 1000., 16.).looking_at(Vec3::Y * 1000.0, Vec3::Y),
+        ..default()
+    });
 }

@@ -1,7 +1,3 @@
-use bevy::prelude::*;
-use bevy_rapier3d::prelude::{ExternalImpulse, RapierContext, RigidBody};
-use leafwing_input_manager::prelude::*;
-
 use crate::audio::{EmptySound, SoundBank};
 use crate::camera::CameraFocus;
 use crate::hud::AmmoDisplay;
@@ -9,6 +5,9 @@ use crate::inventory::Belt;
 use crate::money::Wallet;
 use crate::weapon::{FireResult, ShotEvent, TriggerMode};
 use crate::{input::PlayerAction, player::Player, GameState, PlayerSet};
+use bevy::prelude::*;
+use bevy_rapier3d::prelude::{ExternalImpulse, RapierContext, RigidBody};
+use leafwing_input_manager::prelude::*;
 
 pub struct ShootingPlugin;
 

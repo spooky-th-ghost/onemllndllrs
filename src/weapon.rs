@@ -130,6 +130,10 @@ impl Gun {
     pub fn get_trigger_mode(&self) -> TriggerMode {
         self.trigger.get_trigger_mode()
     }
+
+    pub fn get_spread(&self) -> f32 {
+        self.muzzle.get_spread()
+    }
 }
 
 pub enum Shot {

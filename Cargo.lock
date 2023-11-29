@@ -186,6 +186,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "any_vec"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7ea5311447c840f0ec49bf882e9746aec88e4eadffb5bba99969756ca62b718"
+
+[[package]]
 name = "anyhow"
 version = "1.0.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1097,6 +1103,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_vector_shapes"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "455a6a7a996d028462db45fe9dd050cc5514fef3f36fb208e77f9a12a3dc6dfa"
+dependencies = [
+ "any_vec",
+ "bevy",
+ "bitfield",
+ "bitflags 2.3.3",
+ "bytemuck",
+ "smallvec",
+ "wgpu",
+]
+
+[[package]]
 name = "bevy_window"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1171,6 +1192,12 @@ name = "bit-vec"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
+
+[[package]]
+name = "bitfield"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d7e60934ceec538daadb9d8432424ed043a904d8e0243f3c6446bce549a46ac"
 
 [[package]]
 name = "bitflags"
@@ -2888,6 +2915,7 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_gltf_components",
  "bevy_rapier3d",
+ "bevy_vector_shapes",
  "leafwing-input-manager",
  "rand",
  "regex",

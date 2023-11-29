@@ -27,6 +27,10 @@ impl Belt {
     pub fn fire(&mut self, camera_focus: Res<CameraFocus>) -> FireResult {
         self.gun.fire(camera_focus)
     }
+
+    pub fn get_spread(&self) -> f32 {
+        self.gun.get_spread()
+    }
 }
 
 pub struct Item {
