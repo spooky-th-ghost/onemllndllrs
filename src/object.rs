@@ -1,4 +1,6 @@
-pub use bevy::prelude::*;
+use bevy::prelude::*;
+
+use crate::item::ItemId;
 
 #[derive(Component)]
 pub struct Moveable;
@@ -11,8 +13,6 @@ pub struct Collidable;
 
 #[derive(Component)]
 pub struct Interatable(pub InteractionType);
-
-pub struct ItemId(u16);
 
 pub enum InteractionType {
     Money(u32),

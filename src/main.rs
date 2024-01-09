@@ -18,7 +18,11 @@ pub mod collision;
 
 pub mod input;
 
+pub mod item;
+
 pub mod object;
+
+pub mod quest;
 
 pub mod settings;
 
